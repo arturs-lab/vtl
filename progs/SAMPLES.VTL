@@ -1,0 +1,334 @@
+                        SAMPLE OF PROGRAMMING
+ 
+ 
+WHEN STARTING:  A. LIFT THE RUN-HALT SWITCH
+                B. TURN THE COMPUTER ON
+                C. LIFT THE RESET SWITCH
+                D. TURN THE RUN-HALT SWITCH TO RUN
+                E. THE MONITOR SHOULD REPLY WITH A PERIOD (.)
+                F. TYPE IN J FC00
+                G. VTL-2 SHOULD REPLY "OK"
+ 
+ 
+ 
+OK                              VTL-2 PROMPT
+*=1024                          SET MEMORY SIZE TO 1024 BYTES
+ 
+OK                              VTL-2 PROMPT
+&=264                           RESET PROGRAM POINTER
+ 
+OK                              VTL-2 PROMPT
+10 A=0                          SET A EQUAL TO ZERO
+20 B=1                          SET B EQUAL TO ONE
+30 ?=A                          PRINT THE VALUE OF A
+40 ?="! = ";                    PRINT "FACTORIAL EQUALS"
+50 ?=B                          PRINT THE VALUE OF B
+60 ?=""                         PRINT A CARRIAGE RETURN LINE FEED
+70 A=A+1                        INCREMENT A
+80 B=A*B                        MULTIPLY B TIMES A
+90 #=A<9*30                     IF A IS LESS THAN 9 THEN GOTO STEP # 30
+#=10                            EXECUTE PROGRAM
+0! = 1
+1! = 1
+2! = 2
+3! = 6
+4! = 24
+5! = 120
+6! = 720
+7! = 5040
+8! = 40320
+
+OK                              VTL-2 PROMPT SAYING IT'S DONE.
+
+                        LIST OF FEATURES
+ 
+ 
+                        VARIABLES
+ 
+VARIABLE        MEANING
+ 
+A-Z             COMMON VARIABLES
+                USE FREELY FOR STORING VALUES
+ 
+SYSTEM VARIABLES
+ 
+!               RETURN ADDRESS
+                POINTS TO THE LINE # AFTER THE LAST #= STATEMENT
+"               POINTER FOR LITERAL PRINT STATEMENTS
+#               LINE NUMBER
+$               SINGLE CHARACTER STRING (INPUT OR OUTPUT)
+%               REMAINDER AFTER THE LAST DIVIDE OPERATION
+&               POINTS TO THE LAST BYTE OF PROGRAM
+'               RANDOM NUMBER
+(               SETS START OF PARENTHESIZED EXPRESSION
+)               END
+                SETS END OF LINE
+                SETS END OF PARENTHESIZED EXPRESSION
+                SETS END OF ARRAY DESCRIPTION
+                USED ALSO FOR REMARK STATEMENT
+*               POINTS TO END OF MEMORY
+>               MACHINE LANGUAGE SUBROUTINE
+?               PRINT STATEMENT WHEN ON LEFT OF EQUAL SIGN
+                INPUT STATEMENT WHEN ON RIGHT OF EQUAL SIGN
+:               DEFINES START OF ARRAY DESCRIPTION
+;               WHEN FOLOWING A LITERAL PRINT STATEMENT,
+                SAYS DO NOT PRINT CARRIAGE-RETURN LINE-FEED
+ 
+-=;+</][        MAY BE USED FREELY AS STANDARD VARIABLES
+                BUT USE IS NOT RECOMMENDED FOR LEGIBILTY REASONS
+ 
+ 
+ 
+                        OPERATORS
+ 
++               ADD TO PREVIOUS VALUE
+-               SUBTRACT FROM PREVIOUS VALUE
+*               MULTIPLY TIMES PREVIOUS VALUE
+/               DIVIDE PREVIOUS VALUE BY
+=               IS PREVIOUS VALUE EQUAL TO (YES = 1, NO = 0)
+<               IS PREVIOUS VALUE LESS THAN (YES = 1, NO = 0)
+>               IS PREVIOUS VALUE EQUAL TO OR GREATER THAN (Y=1,N=0)
+THE DEFAULT OPERATOR IS THE LESS THAN TEST.
+
+                                HURKLE
+
+
+
+100 ?=""
+110 ?="A HURKLE IS HIDING ON A"
+120 ?="10 BY 10 GRID. HOMEBASE"
+130 ?="ON THE GRID IS POINT 00"
+140 ?="AND A GRIDPOINT IS ANY"
+150 ?="PAIR OF WHOLE NUMBERS"
+160 ?="TRY TO GUESS THE HURKLE'S"
+170 ?="GRIDPOINT. YOU GET 5 GUESSES"
+180 ?=""
+190 R='/100*0+%
+200 A=R/10
+210 B=%
+220 K=1
+230 ?="GUESS #";
+240 ?=K
+250 ?="  ?";
+260 X=?/10
+270 Y=%
+280 ?=""
+290 #=X*10+Y=R*540
+300 K=K+1
+310 #=K=6*440
+320 ?="GO ";
+330 #=Y=B*370+(Y<B*360)
+340 ?="SOUTH";
+350 #=370
+360 ?="NORTH";
+370 #=X=A*410+(X<A*400)
+380 ?="WEST";
+390 #=410
+400 ?="EAST";
+410 ?=""
+420 ?=""
+430 #=230
+440 ?=""
+450 ?="SORRY THAT'S 5 GUESSES"
+460 ?="THE HURKLE IS AT ";
+470 ?=A
+480 ?=B
+490 ?=""
+500 ?=""
+510 ?="LETS PLAY AGAIN."
+520 ?="HURKLE IS HIDING"
+530 #=180
+540 ?="YOU FOUND HIM IN ";
+550 ?=K
+560 ?=" GUESSES"
+570 #=490
+
+                        TIME OF DAY DIGITAL CLOCK
+ 
+ 
+ 
+FOR 300 BUAD TERMINALS          FOR 110 BAUD TERMINALS
+ 
+10 ?="HOUR ?";                  10 ?="HOUR ?";
+20 H=?                          20 H=?
+30 ?="MINUTE ?";                30 ?="MINUTE ?";
+40 M=?                          40 M=?
+50 ?="SECOND ?";                50 ?="SECOND ?";
+60 S=?                          60 S=?
+70 ?="READY"                    70 ?="READY"
+80 A=$                          80 A=$
+90 S=S+1                        90 S=S+1
+100 M=S/60+M                    100 M=S/60+M
+110 S=%                         110 S=%
+120 H=M/60+H                    120 H=M/60+H
+130 M=%                         130 M=%
+140 H=H/24*0+%                  140 H=H/24*0+%
+150 ?="TIME: ";                 150 ?=H/10
+160 ?=H/10                      160 ?=%
+170 ?=%                         170 ?=":";
+180 ?=":";                      180 ?=M/10
+190 ?=M/10                      190 ?=%
+200 ?=%                         200 ?=":";
+210 ?=":";                      210 ?=S/10
+220 ?=S/10                      220 ?=%
+230 ?=%                         230 $=13
+240 $=13                        240 A=B
+250 A=B                         250 A=B
+260 T=31                        260 A=B
+270 T=T-1                       270 A=B+B
+280 #=T=0*90                    280 T=14
+290 #=270                       290 T=T-1
+                                300 #=T=0*90
+                                310 #=290
+
+                                FACTORIALS
+ 
+             CALCULATES FACTORIALS UNTIL IT RUNS OUT OF MEMORY
+                    FOR IK OF MEMORY THIS IS ABOUT 208!
+ 
+ 
+10 A=1
+20 L=2
+30 :1)=1
+40 I=2
+50 :I)=0
+60 I=I+1
+70 #=L>I*50
+80 ?=""
+90 ?=""
+100 ?=A
+110 ?="! ="
+120 ?=""
+130 I=L+1
+140 I=I-1
+150 #=:I)=0*140
+160 ?=:I)
+170 I=I-1
+180 #=I=0*220
+190 ?=:I)/10
+200 ?=%
+210 #=170
+220 A=A+1
+230 I=1
+240 C=0
+250 X=:I)
+260 :I)=A*X
+270 #=:I)<X*320
+280 :I)=:I)+C
+290 C=:I)/100
+300 :I)=%
+310 I=I+1
+320 #=L>I*250
+330 #=C=0*80
+340 L=L+1
+350 #=*-&/2<L*380
+360 :I)=C
+370 #=290
+
+                                WEEKDAY
+ 
+10 #=440
+20 ?="DAY OF THE WEEK"
+30 ?=""
+40 ?="MONTH?  ";
+50 M=?
+60 #=M>13*40
+70 #=M=0*40
+80 ?=DAY OF MONTH?  ";
+90 D=?
+100 ?="YEAR?  "
+110 Y=?
+120 #=Y>1800*230
+130 #=Y<100*150
+140 #=70
+150 ?=""
+160 ?="IS THAT 19";
+170 ?=Y
+180 ?="?  ";
+190 K=$
+200 #=K=89=0*70
+210 ?="ES"
+220 Y=Y+1900
+230 C=Y/100
+240 Y=%
+250 #=Y/4*0+%=0*280
+260 :1)=6
+270 :2)=2
+280 W=Y/4+Y+D+:M)+(2*(C=18))/7*0+%
+290 #=300+(20*W)
+300 ?="SUN";
+310 #=430
+320 ?="MON";
+330 #=430
+340 ?="TUES";
+350 #=430
+360 ?="WEDNES";
+370 #=340
+380 ?="THURS";
+390 #=430
+400 ?="FRI";
+410 #=430
+420 ?="SATUR";
+430 ?="DAY"
+440 :1)=0
+450 :2)=3
+460 :3)=3
+470 :4)=6
+480 :5)=1
+490 :6)=4
+500 :7)=6
+510 :8)=2
+520 :9)=5
+530 :10)=0
+540 :11)=3
+550 :12)=5
+560 #=20
+
+                                STARSHOOTER
+ 
+ 
+ 
+10 I=0                          290 #=:I)=95=0*250
+20 I=I+1                        300 I=I-1
+30 :I)=46                       310 #=260
+40 #=I<41*20                    320 A=:43)-64
+50 :25)=42                      330 ?=""
+60 I=8                          340 #=A>6*230
+70 J=1                          350 B=:44)-48
+80 $=I-1/7+64                   360 #=B>6*230
+90 ?=" - ";                     370 S=A*7+1+B
+100 S=I+J                       380 ?=""
+110 $=:S)                       390 #=:S)=42*420
+120 J=J+1                       400 ?="THAT'S NOT A STAR!"
+130 #=J=6*160                   410 #=230
+140 ?="  ";                     420 :S)=46
+150 #=100                       430 C=S-7
+160 I=I+7                       440 #=520
+170 ?=""                        450 C=S-1
+180 ?=""                        460 #=520
+190 #=I<43*70                   470 C=S+1
+200 ?=""                        480 #=520
+210 ?="    1  2  3  4  5"       490 C=S+7
+220 ?=""                        500 #=520
+230 ?="YOUR MOVE --";           510 #=60
+240 I=42                        520 ^=!
+250 I=I+1                       530 #=:C)=42*560
+260 :I)=$                       540 :C)=42
+270 #=:I)=13*320                550 #=^
+280 #=:I)=3*580                 560 :C)=46
+                                570 #=^
+ 
+ 
+OBJECT OF THE GAME IS TO CHANGE THIS:                   TO THIS:
+                                A - . . . . .           A - * * * * *
+ 
+                                B - . . . . .           B - * . . . *
+ 
+                                C - . . * . .           C - * . . . *
+ 
+                                D - . . . . .           D - * . . . *
+ 
+                                E - . . . . .           E - * * * * *
+ 
+                                    1 2 3 4 5               1 2 3 4 5
+
