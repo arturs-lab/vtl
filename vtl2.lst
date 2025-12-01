@@ -1,0 +1,1502 @@
+0000                MACHINE:   EQU   1   ; "AL80"
+0000                             ;MACHINE:	EQU	2	; "MintZ80"
+0000                             ; VTL2.ASM
+0000                             ; ------------
+0000                             ; 
+0000                             ; MITS VTL-2 -- A Very Tiny Language for the Altair 8800
+0000                             ; by Frank McCoy, Copyright 1976, 2007
+0000                             ; Version 3.0
+0000                             ; 
+0000                             ; 
+0000                CASSTS:   EQU   6   ; Cassette Status
+0000                CASSTD:   EQU   7   ; Cassette Data
+0000                UART_BASE:   EQU   008h   ; Base port address, P8250A/USART uses 8 ports.
+0000                UART0:    EQU   UART_BASE+00h   ;Data in/out
+0000                UART1:    EQU   UART_BASE+01h   ;Check RX
+0000                UART2:    EQU   UART_BASE+02h   ;Interrupts
+0000                UART3:    EQU   UART_BASE+03h   ;Line control
+0000                UART4:    EQU   UART_BASE+04h   ;Modem control
+0000                UART5:    EQU   UART_BASE+05h   ;Line status
+0000                UART6:    EQU   UART_BASE+06h   ;Modem status
+0000                UART7:    EQU   UART_BASE+07h   ;Scratch register		
+0000                SIO_BASE:   EQU   018h   ; SIO port
+0000                SIO_DA:   EQU   SIO_BASE   
+0000                SIO_CA:   EQU   SIO_BASE+1   
+0000                SIO_DB:   EQU   SIO_BASE+2   
+0000                SIO_CB:   EQU   SIO_BASE+3   
+0000                             ;--------------------------------
+0000                             ; MITS Altair or Imsai 8800 I/O ports used:
+0000                             ; If your system has one of these board's I/O addressed at a
+0000                             ; non-standard location, then just change the appropriate
+0000                             ; definition of the three below; and reassemble the program.
+0000                             ; 
+0000                             ;SIOBRD	EQU	0	; MITS Single-SIO board usually Port-0
+0000                             ;SIO2BRD	EQU	16	; MITS Dual-SIO board usually Ports-16 & 18
+0000                             ;PTPLUSS	EQU	0	; Processor-Technology 3P+S board at Port-0
+0000                             ; 
+0000                             ; 
+0000                             ; The bits input from the SENSE switches are defined as follows:
+0000                             ;    00000000B
+0000                             ;        | ||
+0000                             ;        | ||    0 = MITS SIO  board at Port-0  (Default)
+0000                             ;        | |+----1 = MITS 2SIO board at Port-16
+0000                             ;        | +-----2 = Processor-Technology 3P+S board at Port-0
+0000                             ;        +-------8 = MITS 2SIO board at Port-18
+0000                             ; 
+0000                             ; The bits are tested in-order, right-to-left
+0000                             ; 2SIO at 16 first 3P+S second, 2SIO at 18 third.
+0000                             ; If none of the three bits are set, then is MITS SIO board.
+0000                             ; The odd grouping is for compatibility with MITS software;
+0000                             ; Specifically MITS BASIC.
+0000                             ; 
+0000                             ; Thus default (00H) assumes a single MITS SIO board at port-0
+0000                             ; 
+0000                             ;SENSE	EQU	0FFH	; Sense-Switches at 0xFF on Altair 8800
+0000                             ; 
+0000                             ; From above, we get the following:
+0000                             ; 
+0000                             ;SIOS	EQU	SIOBRD	; MITS Single SIO board Status
+0000                             ;SIOD	EQU	SIOS+1	; MITS Single SIO board Data
+0000                             ; 
+0000                             ;SIOS0	EQU	SIO2BRD	; MITS 2SIO Board Lower Status
+0000                             ;SIOD0	EQU	SIOS0+1	; MITS 2SIO Board Lower Data
+0000                             ;SIOS1	EQU	SIOS0+2	; MITS 2SIO Board Upper Status
+0000                             ;SIOD1	EQU	SIOS1+1	; MITS 2SIO Board Upper Data
+0000                             ; 
+0000                             ;PTSS	EQU	PTPLUSS	; Processor-Technology 3P+S Serial Status
+0000                             ;PTSD	EQU	PTSS+1	; Processor-Technology 3P+S Serial Data
+0000                             ; 
+0000                             ; 
+0000                             ; I/0 byte equates:
+0000                             ; 
+0000                CLEAR:    EQU   01H   ; Clear 2SIO boards
+0000                INTCI:    EQU   11H   ; Sets clock and interupts on 2SIO boards
+0000                             ; 
+0000                             ;--------------------------------
+0000                             ; ASCII characters used (ASR-33 Teletype).
+0000                             ; 
+0000                CTRLC:    EQU   03H   ; Abort key (Control-C)
+0000                LF:       EQU   0AH   ; Line-Feed
+0000                CR:       EQU   0DH   ; Carriage-Return
+0000                             ;--------------------------------
+0000                             ;       Buffer area
+0000                             ;-------------------------------- (SV = System Variable)
+0000                             ;-------------------------------- (GV = Usable Variable)
+0000                             ; 
+0000                          .ORG   0000H   ; Bottom of memory
+0000                BRKPNT:   DS   0   ; Address of RST 0
+0000                RST0:     DS   8   ; Restarts
+0008                RST1:     DS   8   ; 
+0010                RST2:     DS   8   ; 
+0018                RST3:     DS   8   ; 
+0020                RST4:     DS   8   ; 
+0028                RST5:     DS   8   ; 
+0030                RST6:     DS   8   ; 
+0038                RST7:     DS   8   ; 
+0040                AT:       DS   2   ; SV: Usable storage since "@" not allowed
+0042                VARS:     DS   52   ; Variables A - Z (26 variables)
+0076                BRAK:     DS   2   ; [
+0078                SLISH:    DS   2   ; \
+007A                BRIK:     DS   2   ; ]
+007C                UP:       DS   2   ; ^ SV: Number of terminal option running
+007E                LINPTR:   DS   2   ; _ SV: Current line-pointer save
+0080                SPAC:     DS   2   ;   GV: Space
+0082                EXCLAM:   DS   2   ;   SV: RETURN pointer (Excalmation-Point)
+0084                QUOTE:    DS   2   ; "
+0086                NUMBR:    DS   2   ; # SV: Line-Number
+0088                DOLLAR:   DS   2   ; $ SV: Character pointer
+008A                PERCNT:   DS   2   ; % SV: Remainder after divide
+008C                AMPERS:   DS   2   ; & SV: Next byte past user program - Array start
+008E                QUITE:    DS   2   ; ' SV: Random Number
+0090                PAREN:    DS   2   ; ( SV: Not used
+0092                PARIN:    DS   2   ; ) SV: Not used
+0094                STAR:     DS   2   ; * SV: Next byte past user program (Array area)
+0096                PLUS:     DS   2   ; + GV: General Purpose variable
+0098                COMMA:    DS   2   ; , SV: Number of nulls after each cr/lf
+009A                MINUS:    DS   2   ; - GV: General Purpose variable
+009C                PERIOD:   DS   2   ; . SV: Terminal echo switch
+009E                SLASH:    DS   2   ;   SV: General Purpose variable
+00A0                             ; 
+00A0                EVALPT:   DS   2   ; 0 Eval pointer
+00A2                SV1:      DS   2   ; 1 SV: Not used
+00A4                SV2:      DS   2   ; 2 SV: Not used
+00A6                SV3:      DS   2   ; 3 SV: Not used
+00A8                SV4:      DS   2   ; 4 SV: Not used
+00AA                SV5:      DS   2   ; 5 SV: Not used
+00AC                RESULT:   DS   2   ; 6 SV: Result of expression evaluation
+00AE                LINUMB:   DS   2   ; 7 SV: Line number
+00B0                CURENT:   DS   2   ; 8 SV: Current line number
+00B2                VALVAR:   DS   2   ; 9 SV: Value of variable?
+00B4                             ; 
+00B4                COLN:     DS   2   ; : GV: General purpose variable
+00B6                SEMI:     DS   2   ; ; GV: General Purpose variable
+00B8                LESS:     DS   2   ; < GV: General Purpose variable
+00BA                EQAL:     DS   2   ; = GV: General Purpose variable
+00BC                GRAT:     DS   2   ; > SV: Return-value from Machine-language
+00BE                             ; 
+00BE                DECBUF:   DS   4   ; Decimal buffer ("54321")
+00C2                LASTD:    DS   1   ; Last byte in decimal-buffer
+00C3                DELIM:    DS   1   ; Delimiter space for buffer-end
+00C4                LINBUF:   DS   72   ; Line buffer (TTY = 72 Characters)
+010C                             ; 
+010C                             ;--------------------------------
+010C                             ;	User program
+010C                             ;--------------------------------
+010C                             ; 
+0140                          .ORG   0140H   ; = 320 in decimal
+0140                             ; 
+0140                STACK:    EQU   $   ; Stack goes from here down to line-buffer
+0140                PRGM:     EQU   $   ; Programming space: here to end of memory
+0140                             ; 
+0140                             ;--------------------------------
+0140                             ;       Main operating system
+0140                             ;--------------------------------
+0140                             ; 
+F800                          .ORG   0F800H   ; Probably a ROM
+F800                             ; 
+F800                             ; Cold-Start ("Boot").
+F800                             ; 
+F800   3E 01        RSTRT:    MVI   a,01   
+F802   D3 F8                  OUT   0f8h   
+F804   21 01 00               LXI   H,CLEAR   ; = 3 to clear various things
+F807   22 9C 00               SHLD   PERIOD   ; To see the program as it comes in
+F80A   21 00 00               LXI   H,0   ; no null after CRLF
+F80D   22 98 00               SHLD   COMMA   ; Number of nulls after each cr/lf
+F810                             ; 
+F810                             ; By default, VTL-2 expects that the MITS Altair 8800 system
+F810                             ; it is running on has a terminal via one 2SIO board, either
+F810                             ; at I/O port 16, or at port 18. Since it has no way to know
+F810                             ; which one will be used, it simply initialize the 2SIO board
+F810                             ; at both I/O ports...
+F810                             ; 
+F810                             ;	skip init. We're entering from monitor or boot loader and SIO ports are initialized
+F810                             ;	MOV	A,L	; = 3 Resets the chip of the 2SIO board
+F810                             ;	OUT	SIOS0	; I/O port 16 = 2SIO board Status
+F810                             ;	OUT	SIOS1	; I/O port 18 = 2SIO board Status
+F810                             ;	MVI	A,INTCI	; = 17 Sets the clock and interrupts
+F810                             ;	OUT	SIOS0	; I/O port 16 = 2SIO board Status
+F810                             ;	OUT	SIOS1	; I/O port 18 = 2SIO board Status
+F810                             ; 
+F810                             ; 
+F810                             ; 
+F810                             ; Warm-Start (Ctrl-C).
+F810                             ; 
+F810                             ; On Entry, register contents don't matter.
+F810                             ; 
+F810   31 40 01     START:    LXI   SP,STACK   ; Set up stack (before user program)
+F813   AF                     XRA   A   ; Initialize delimiter
+F814   32 C3 00               STA   DELIM   ; Save delimiter for decimal-printing
+F817   21 9B FB               LXI   H,OKM   ; Point to "OK" prompt
+F81A   CD 7C FB               CALL   STRNG   ; Display it on terminal
+F81D                             ; 
+F81D                             ; Main loop of VTL-2 interpreter.
+F81D                             ; 
+F81D                             ; BC: ?, DE: ?, HL: ?
+F81D                             ; 
+F81D   21 00 00     LOOP:     LXI   H,0000H   ; Clear line-number for fall-through
+F820   22 86 00               SHLD   NUMBR   ; If no change during this line, then next
+F823   CD 23 FB               CALL   CVTLN   ; Was a line number inputted?
+F826   D2 80 F8               JNC   STMNT   ; 0: List (display) user program statements
+F829   CD 6F F8               CALL   EXEC   ; If no line, then execute direct statement
+F82C   CA 10 F8               JZ   START   ; If end, then stop
+F82F                             ; 
+F82F   CD BA F8     LOOP2:    CALL   FIND   ; Load real line-number
+F832                             ; 
+F832                             ; Start processing "=" statements.
+F832                             ; 
+F832   D2 10 F8     EQSTRT:   JNC   START   ; If end, then stop
+F835                             ; 
+F835   CD 65 F8               CALL   LXHN   ; Get real line number
+F838   22 86 00               SHLD   NUMBR   ; And save it for program
+F83B   2A 7E 00               LHLD   LINPTR   ; Get crrent spot in line
+F83E   23                     INX   H   ; Bump past 0-byte delimiter
+F83F   23                     INX   H   ; Bump past line-number
+F840   23                     INX   H   ; 
+F841   CD 6F F8               CALL   EXEC   ; Execute statement in line
+F844                             ; 
+F844   EB                     XCHG      ; 
+F845   CA 58 F8               JZ   LOOP3   ; If line-number == 0, then continue
+F848   2A 7E 00               LHLD   LINPTR   ; Else get new line
+F84B   CD 65 F8               CALL   LXHN   ; and see if it's changed
+F84E   CA 58 F8               JZ   LOOP3   ; If unchanged, then continue
+F851   23                     INX   H   ; Else, increment old line-number
+F852   22 82 00               SHLD   EXCLAM   ; And save as RETURN value
+F855   C3 2F F8               JMP   LOOP2   ; Then continue at new line
+F858                             ; 
+F858   E5           LOOP3:    PUSH   H   ; Save line number
+F859   2A 8C 00               LHLD   AMPERS   ; Next byte of user program
+F85C   44                     MOV   B,H   ; 
+F85D   4D                     MOV   C,L   ; Copy it into BC
+F85E   E1                     POP   H   ; Restore line number
+F85F   CD D9 F8               CALL   FND3   ; Find next line
+F862   C3 32 F8               JMP   EQSTRT   ; And THEN continue
+F865                             ; 
+F865                             ;--------------------------------
+F865                             ; Get line number from user program.
+F865                             ; 
+F865   7E           LXHN:     MOV   A,M   ; 
+F866   23                     INX   H   ; 
+F867   66                     MOV   H,M   ; 
+F868   6F                     MOV   L,A   ; 
+F869                             ; 
+F869                             ; ... and falls through
+F869                             ; 
+F869                             ; Compare HL with DE.
+F869                             ; 
+F869   7D           CPHD:     MOV   A,L   ; 
+F86A   BB                     CMP   E   ; First test high bytes
+F86B   C0                     RNZ      ; Done, if not same
+F86C   7C                     MOV   A,H   ; 
+F86D   BA                     CMP   D   ; Else test low bytes
+F86E   C9                     RET      ; 
+F86F                             ; 
+F86F                             ;--------------------------------
+F86F                             ;	Execute direct statements.
+F86F                             ; 
+F86F   22 AE 00     EXEC:     SHLD   LINUMB   ; Save line position for store
+F872   CD E5 FA               CALL   VAR2   ; Skip past variable or array-element
+F875                             ; 
+F875   23                     INX   H   ; Get first term
+F876   7E           SKIP:     MOV   A,M   ; 
+F877   CD DF F8               CALL   EVIL   ; Evaluate expression
+F87A                             ; 
+F87A   2A 86 00     OUTX:     LHLD   NUMBR   ; Get char ptr
+F87D   7C                     MOV   A,H   ; 16-bits test if it is zero
+F87E   B5                     ORA   L   ; (Sets Zero flag)
+F87F   C9                     RET      ; 
+F880                             ; 
+F880                             ;--------------------------------
+F880                             ;	List (display) user program statements.
+F880                             ; 
+F880                             ; BC: ?, DE: ?, HL: ?
+F880                             ; 
+F880   22 B0 00     STMNT:    SHLD   CURENT   ; Save current line number
+F883   69                     MOV   L,C   ; Copy BC (?) to HL
+F884   60                     MOV   H,B   ; 
+F885   22 86 00               SHLD   NUMBR   ; And save it in char ptr
+F888   78                     MOV   A,B   ; 16-bits test if BC is zero
+F889   B1                     ORA   C   ; 
+F88A   C2 11 F9               JNZ   SKP2   ; Skip if line-number <> 0
+F88D                             ; 
+F88D   2A 8C 00               LHLD   AMPERS   ; Point past end of program
+F890   EB                     XCHG      ; Put it in DE
+F891   21 40 01               LXI   H,PRGM   ; point to start of user program
+F894                             ; 
+F894                             ; List (display) program on terminal.
+F894                             ; 
+F894   CD 69 F8     LST2:     CALL   CPHD   ; Check if next = start (= no program)
+F897                             ; 
+F897   CA 10 F8               JZ   START   ; Yes: Return to interpreter
+F89A                             ; 
+F89A   D5                     PUSH   D   ; No:
+F89B   4E                     MOV   C,M   ; 
+F89C   23                     INX   H   ; Get line number from memory
+F89D   46                     MOV   B,M   ;   and put it into BC.
+F89E   E5                     PUSH   H   ; Save line-pointer
+F89F   CD 8B F9               CALL   PRNT2   ; Print 16-bit line number in decimal
+F8A2                             ; 
+F8A2   E1                     POP   H   ; Restore line-pointer
+F8A3   23                     INX   H   ; Move past line-number content
+F8A4   CD B9 F9               CALL   PNTMSG   ; Print contents of line
+F8A7                             ; 
+F8A7   CD 83 FB               CALL   CRLF   ; End of line
+F8AA                             ; 
+F8AA   D1                     POP   D   ; 
+F8AB   C3 94 F8               JMP   LST2   ; Loop until end of program
+F8AE                             ; 
+F8AE                             ;--------------------------------
+F8AE                             ; Next text?
+F8AE                             ; 
+F8AE   2A 7E 00     NXTXT:    LHLD   LINPTR   ; Line-pointer
+F8B1   23                     INX   H   ; Point past Line-Number
+F8B2   23           LOOKAG:   INX   H   ; Find end of line
+F8B3   7E                     MOV   A,M   ; 
+F8B4   A7                     ANA   A   ; 
+F8B5   C2 B2 F8               JNZ   LOOKAG   ; Look again...
+F8B8                             ; 
+F8B8                             ; Closing-Paren in line also uses those 2 instructions...
+F8B8                             ; 
+F8B8   23           OUTH:     INX   H   ; And point to next
+F8B9   C9                     RET      ; Done
+F8BA                             ; 
+F8BA                             ;--------------------------------
+F8BA                             ; Find line-number
+F8BA                             ; 
+F8BA   2A 8C 00     FIND:     LHLD   AMPERS   ; Point at first byte of user program
+F8BD   4D                     MOV   C,L   ; 
+F8BE   44                     MOV   B,H   ; Copy it to BC
+F8BF   2A 86 00               LHLD   NUMBR   ; Char ptr
+F8C2   EB                     XCHG      ; Copy it to DE
+F8C3   21 40 01               LXI   H,PRGM   ; PC of user program
+F8C6   22 7E 00     FND2:     SHLD   LINPTR   ; Set it equal to line-pointer
+F8C9   7C                     MOV   A,H   ; Get and compare
+F8CA   B8                     CMP   B   ; High bytes
+F8CB   C2 D1 F8               JNZ   NXTUU   ; Non-zero if high-bytes don't match
+F8CE   7D                     MOV   A,L   ; If high bytes match, then compare
+F8CF   B9                     CMP   C   ; Low bytes
+F8D0   C8                     RZ      ; Zero: Return with no carry, equal
+F8D1                             ; 
+F8D1                             ; Not zero: ?
+F8D1                             ; 
+F8D1   7E           NXTUU:    MOV   A,M   ; Get low byte of user program
+F8D2   93                     SUB   E   ; Subtract low byte of char ptr
+F8D3   23                     INX   H   ; Point to next byte
+F8D4   7E                     MOV   A,M   ; Get high byte of user program
+F8D5   9A                     SBB   D   ; Subtract low byte of char ptr
+F8D6   2B                     DCX   H   ; Point to previous byte
+F8D7   3F                     CMC      ; Complement Carry flag
+F8D8   D8                     RC      ; Return if DE > M(HL)
+F8D9                             ; 
+F8D9                             ; Else, find next line
+F8D9                             ; 
+F8D9   CD AE F8     FND3:     CALL   NXTXT   ; 
+F8DC                             ; 
+F8DC   C3 C6 F8               JMP   FND2   ; 
+F8DF                             ; 
+F8DF                             ;--------------------------------
+F8DF                             ; 
+F8DF                             ;         Subroutine to evaluate line
+F8DF                             ; 
+F8DF   FE 22        EVIL:     CPI   022h   ; Is it a quote surrounding strings?
+F8E1   CA 7B FB               JZ   QUOTE2   ; Yes: go process it
+F8E4                             ; 
+F8E4   CD 1D FA               CALL   EVAL   ; No: Evaluate expression
+F8E7                             ; 
+F8E7   C5                     PUSH   B   ; 
+F8E8   2A AE 00               LHLD   LINUMB   ; ?
+F8EB   CD FC FA               CALL   CONVP   ; Convert pointer to point to variable
+F8EE                             ; 
+F8EE   C1                     POP   B   ; Get back pointer to storage
+F8EF   FE 24                  CPI   "$"   ; Is it a single character string?
+F8F1   C2 F8 F8               JNZ   ANDT   ; No: Go check if it is a "?" char
+F8F4                             ; 
+F8F4   79                     MOV   A,C   ; Yes:
+F8F5   C3 F5 F9               JMP   OUTCH   ; Print the character
+F8F8                             ; 
+F8F8                             ; It is not a single char string. Is it "?" char?
+F8F8                             ; 
+F8F8   D6 3F        ANDT:     SUI   "?"   ; 
+F8FA   CA 8B F9               JZ   PRNT2   ; Yes: print the value in decimal
+F8FD                             ; 
+F8FD                             ; System Variable "Greater Than" subroutine.
+F8FD                             ; 
+F8FD                             ; Pass a 16-bits value in BC to a machine language subroutine.
+F8FD                             ; 
+F8FD                             ; Note: Value from executing line is in BC register.
+F8FD                             ; Machine-Language routine can return another value in this
+F8FD                             ; Register-pair; and it will be saved in the ">" variable.
+F8FD                             ; The Accumulator passed cleared; but can be freely used.
+F8FD                             ; All other registers other than the BC and registers *must* be
+F8FD                             ; returned unchanged!
+F8FD                             ; 
+F8FD   3C                     INR   A   ; Is it a ">" char?
+F8FE   CC 00 00               CZ   BRKPNT   ; Call RST 0 at 0000H
+F901                             ; 
+F901                             ; "At the conclusion of the machine language subroutine,
+F901                             ; a Intel 8080 RET instruction returns control to VTL-2,
+F901                             ; 
+F901                             ; The value in B&C is stored in the appropriate variable.
+F901                             ; 
+F901   71                     MOV   M,C   ; Copy BC to Variable Storage
+F902   23                     INX   H   ; 
+F903   70                     MOV   M,B   ; 
+F904   2A 8E 00               LHLD   QUITE   ; Get Random-number
+F907   09                     DAD   B   ; Add current value to random number
+F908   22 8E 00               SHLD   QUITE   ; And save new random number
+F90B                             ; 
+F90B                             ; Compare BC and DE and return with flags
+F90B                             ; 
+F90B   79           CPBD:     MOV   A,C   ; 
+F90C   BB                     CMP   E   ; 
+F90D   C0                     RNZ      ; 
+F90E   78                     MOV   A,B   ; DE = ?
+F90F   BA                     CMP   D   ; 
+F910   C9                     RET      ; 
+F911                             ; 
+F911                             ;--------------------------------
+F911                             ; 
+F911   CD BA F8     SKP2:     CALL   FIND   ; Find either same line or place for insert
+F914                             ; 
+F914   D2 36 F9               JNC   INSRT   ; If past end, then insert
+F917   CD 65 F8               CALL   LXHN   ; Check if line found is same line
+F91A   C2 36 F9               JNZ   INSRT   ; If not, then Insert
+F91D   CD AE F8               CALL   NXTXT   ; Else bump past current line
+F920                             ; 
+F920   EB                     XCHG      ; 
+F921   2A 7E 00               LHLD   LINPTR   ; Line-pointer
+F924   CD 0B F9     DELT:     CALL   CPBD   ; Compare BC with DE
+F927   CA 31 F9               JZ   FITIT   ; Equal: If finished deleting, then continue
+F92A   1A                     LDAX   D   ; Move byte at M(DE)
+F92B   77                     MOV   M,A   ;   to M(HL).
+F92C   23                     INX   H   ; Increment HL
+F92D   13                     INX   D   ; Increment DE
+F92E   C3 24 F9               JMP   DELT   ; Loop and continue removing line
+F931                             ; 
+F931                             ; Insert a program line in program "text".
+F931                             ; 
+F931   22 8C 00     FITIT:    SHLD   AMPERS   ; Save address of new end of user program
+F934   44                     MOV   B,H   ; Copy HL to BC
+F935   4D                     MOV   C,L   ; 
+F936   2A B0 00     INSRT:    LHLD   CURENT   ; Count new line-length
+F939   11 03 00               LXI   D,0003H   ; 3 = delimiter (0-byte) + line number
+F93C   7E                     MOV   A,M   ; Get byte
+F93D   A7                     ANA   A   ; Is it the end-of-line?
+F93E   CA 1D F8               JZ   LOOP   ; Yes: Back to main loop of interpreter
+F941                             ; 
+F941   13           CNTLN:    INX   D   ; No: Calculate new end
+F942   23                     INX   H   ; 
+F943   7E                     MOV   A,M   ; Get next byte
+F944   A7                     ANA   A   ; 
+F945   C2 41 F9               JNZ   CNTLN   ; Not zero: Back to main loop of interpreter
+F948                             ; 
+F948                             ; Zero: ?
+F948                             ; 
+F948   EB           OPEN:     XCHG      ; 
+F949   09                     DAD   B   ; Add BC
+F94A   EB                     XCHG      ; Put result in DE
+F94B   21 94 00               LXI   H,STAR   ; Memory size
+F94E   7B                     MOV   A,E   ; Subtract memory size from program length?
+F94F   96                     SUB   M   ; 
+F950   23                     INX   H   ; 
+F951   7A                     MOV   A,D   ; 
+F952   9E                     SBB   M   ; 
+F953   D2 10 F8               JNC   START   ; If too big, then stop
+F956                             ; 
+F956                             ; Some available memory is present.
+F956                             ; 
+F956   EB                     XCHG      ; 
+F957   22 8C 00               SHLD   AMPERS   ; Then, this must be next byte of user PGM?
+F95A   03                     INX   B   ; 
+F95B   23                     INX   H   ; 
+F95C   E5                     PUSH   H   ; 
+F95D   2A 7E 00               LHLD   LINPTR   ; Line-pointer
+F960   EB                     XCHG      ; 
+F961   E1                     POP   H   ; 
+F962                             ; 
+F962   0B           SLIDE:    DCX   B   ; Slide open gap for new line
+F963   2B                     DCX   H   ; 
+F964   0A                     LDAX   B   ; A = M(BC)
+F965   77                     MOV   M,A   ; 
+F966   CD 0B F9               CALL   CPBD   ; Until space is made for new one
+F969   C2 62 F9               JNZ   SLIDE   ; Move program above new line up.
+F96C                             ; 
+F96C   2A 86 00     DON:      LHLD   NUMBR   ; Char ptr
+F96F   7D                     MOV   A,L   ; Get M(HL)
+F970   02                     STAX   B   ; M(BC) = A
+F971   03                     INX   B   ; Increment BC
+F972   7C                     MOV   A,H   ; Get M(HL)
+F973   02                     STAX   B   ; M(BC) = A  Save new line-number in program
+F974   2A B0 00               LHLD   CURENT   ; Point at line-buffer
+F977                             ; 
+F977   03           MOVL:     INX   B   ; Move line from line-buffer to program
+F978   7E                     MOV   A,M   ; 
+F979   02                     STAX   B   ; M(BC) = A
+F97A   23                     INX   H   ; 
+F97B   A7                     ANA   A   ; 
+F97C   C2 77 F9               JNZ   MOVL   ; Until end-of-line in line-buffer
+F97F   C3 1D F8               JMP   LOOP   ; Back to main loop of interpreter
+F982                             ; 
+F982                             ;--------------------------------
+F982                             ;       I/O subroutines
+F982                             ;--------------------------------
+F982                             ; The following routines:
+F982                             ; INCH   or Input-Character  from Terminal
+F982                             ; OUTCH  or Output-Character   to Terminal
+F982                             ; POLCAT or Poll-For-Character on Terminal
+F982                             ; are each repeated 4 times, once for each I/O port.
+F982                             ; The POLSNS routine is used to check which of the
+F982                             ; four following routines to execute; depending on the
+F982                             ; Terminal settings in the sense-switches.
+F982                             ; 
+F982                             ; The INCH and OUTCH routines both use the common
+F982                             ; routine: POLCAT to see if a character is ready
+F982                             ; for input or output on the selected terminal.
+F982                             ;--------------------------------
+F982                             ; 
+F982                             ; 
+F982                             ; Poll for character at terminal
+F982                             ; Status returns carry-flag set if input character available
+F982                             ; Status returns non-zero if output is ready for character
+F982                             ; 
+F982                          IF   MACHINE = 1   
+F982                             ; 
+F982                             ; 8250 UART of AL80
+F982                             ; 
+F982   DB 0D        POLCAT:   IN   UART5   ; I/O Port-0 = Single-SIO board
+F984   E6 21                  ANI   021H   ; bit0 = RX data available, bit5 TX empty
+F986   1F                     RAR      ; TBE bit to bit-4; RDA bit to carry
+F987   D0                     RNC      ; Zero and carry status right if low
+F988   A7                     ANA   A   ; Else check new shifted output bit
+F989   37                     STC      ; And set the carry
+F98A   C9                     RET      ; Return with status
+F98B                          ELSE      ; Z80 SIO/0
+                                 ; 
+                                 ; SIO/0 UART of MintZ80
+                                 ; 
+                    POLCAT:   PUSH   b   
+                              MVI   a,1   ; select RR1
+                              OUT   SIO_CA   
+                              IN   SIO_CA   
+                              ANI   001h   ; 7c bit 0 is TX ready
+                              RAL      ; rotate to bit 1
+                              MOV   b,a   ; save in reg B
+                              SUB   a   ; 4c clear a, write into WR0: select RR0
+                              OUT   SIO_CA   ; 11c
+                              IN   SIO_CA   ; 11c read RRx
+                              ANI   001h   ; 7c bit 0 is RX ready
+                              ORA   b   
+                              POP   b   
+                              RAR      ; TBE bit to bit-4; RDA bit to carry
+                              RNC      ; Zero and carry status right if low
+                              ANA   A   ; Else check new shifted output bit
+                              STC      ; And set the carry
+                              RET      ; Return with status
+F98B                          ENDIF      
+F98B                             ; 
+F98B                             ;--------------------------------
+F98B                             ; Print 16-bit line number in decimal.
+F98B                             ; 
+F98B                             ; On Entry, BC = Number to be printed
+F98B                             ; 
+F98B                             ; On exit, all registers are used and changed
+F98B                             ; 
+F98B   11 BD 00     PRNT2:    LXI   D,DECBUF-1   ; Decimal buffer (5 chars long)
+F98E   21 11 FB               LXI   H,PWRS10   ; Table of decimal values
+F991   13           CVD1:     INX   D   ; To save program space, do incr here
+F992   D5                     PUSH   D   ; Save address of next character-space
+F993   50                     MOV   D,B   ; Copy Number (or remainder of it) to DE
+F994   59                     MOV   E,C   ; For upcoming divide
+F995   4E                     MOV   C,M   ; Get Decimal divider in BC
+F996   23                     INX   H   ; 
+F997   46                     MOV   B,M   ; 
+F998   23                     INX   H   ; Then point to next decimal divisor
+F999   E5                     PUSH   H   ; Save address current divisor
+F99A                             ; 			  BC: divisor, DE: dividend
+F99A   CD 7A FA               CALL   DIV   ; Divide by 10,000, 1000, 100, 10, 1
+F99D                             ; 			  DE: quotient, HL: remainder
+F99D   7B                     MOV   A,E   ; Temp save result of divide in A
+F99E   44                     MOV   B,H   ; Copy remainder to BC for next divide
+F99F   4D                     MOV   C,L   ; 
+F9A0   E1                     POP   H   ; Restore address of next divisor to HL
+F9A1   D1                     POP   D   ; Restore address of where to store char.
+F9A2   C6 30                  ADI   "0"   ; Make result of divide an ASCII number
+F9A4   12                     STAX   D   ; Store new decimal character
+F9A5   7B                     MOV   A,E   ; Get pointer byte
+F9A6   FE C2                  CPI   lsb(LASTD)   ; See if at end of number
+F9A8   DA 91 F9               JC   CVD1   ; If not past table, then continue.
+F9AB                             ; 
+F9AB                             ; Suppress zeroes.
+F9AB                             ; 
+F9AB   1A                     LDAX   D   ; Get last digit
+F9AC   F6 80                  ORI   10000000B   ; Add high-bit so 0 gets printed
+F9AE   12                     STAX   D   ; Save last digit with high-bit set
+F9AF   21 BD 00               LXI   H,DECBUF-1   ; Point before decimal buffer
+F9B2   23           ZRSUP:    INX   H   ; Point to next char
+F9B3   7E                     MOV   A,M   ; Get it
+F9B4   FE 30                  CPI   "0"   ; Is it an ASCII zero?
+F9B6   CA B2 F9               JZ   ZRSUP   ; Yes: Loop, not showing zeroes
+F9B9                             ; 
+F9B9                             ; Print message -- Init delimiter to zero.
+F9B9                             ; 
+F9B9   AF           PNTMSG:   XRA   A   ; Init delimiter to zero
+F9BA                             ; 
+F9BA                             ; Print a message.
+F9BA                             ; Delimiter is in A.  (Might be 0 byte or quote.)
+F9BA                             ; 
+F9BA   47           STRMSG:   MOV   B,A   ; and put it in B-reg.
+F9BB   7E           OUTMSG:   MOV   A,M   ; Get char from memory
+F9BC   23                     INX   H   ; Update memory pointer
+F9BD   B8                     CMP   B   ; Is it the delimiter?
+F9BE   CA C7 F9               JZ   CONTC   ; Yes: Check if it is Ctrl-C
+F9C1   CD F3 F9               CALL   ASCII   ; No: Display the char on the terminal
+F9C4   C3 BB F9               JMP   OUTMSG   ; and loop until delimiter found.
+F9C7                             ; 
+F9C7                             ; Check for Control-C.
+F9C7                             ; 
+F9C7   CD 82 F9     CONTC:    CALL   POLCAT   ; Poll character at terminal?
+F9CA   D0                     RNC      ; None available: Return
+F9CB   CD D3 F9               CALL   INCH   ; One char present: Get it
+F9CE   FE 03                  CPI   CTRLC   ; Is it Control-C?
+F9D0   CA 10 F8               JZ   START   ; Yes: Return to interpreter
+F9D3                             ; No: Get char (Implement Pause)
+F9D3                             ; 
+F9D3                             ; 
+F9D3                             ; Input a character, whatever the I/O ports involved.
+F9D3                             ; 
+F9D3   CD 82 F9     INCH:     CALL   POLCAT   ; Check status for character input
+F9D6   DA EE F9               JC   INA   ; One available: Go process it
+F9D9                             ; 
+F9D9                             ; Status was FALSE: There is no char in one of the I/O
+F9D9                             ; ports, so let's check the Cassette tape player, instead.
+F9D9                             ; 
+F9D9   3A 9C 00               LDA   PERIOD   ; Terminal/Cassette echo switch
+F9DC   E6 02                  ANI   0010B   
+F9DE                             ;		 |||
+F9DE                             ;		 ||+--> 0 = Nothing displayed on terminal
+F9DE                             ;		 ||     1 = Chars.  displayed on terminal
+F9DE                             ;		 |+---> 2 = Input from Cassette
+F9DE                             ;		 +----> 4 = Output  to Cassette
+F9DE                             ; 
+F9DE   CA D3 F9               JZ   INCH   ; No cassete input wanted; so loop
+F9E1                             ; 
+F9E1                             ; No: Input from cassette
+F9E1                             ; 
+F9E1   DB 06                  IN   CASSTS   ; I/O port 6 = Cassette Status
+F9E3   0F                     RRC      ; Check if character ready yet
+F9E4   DA D3 F9               JC   INCH   ; Loop while waiting for char
+F9E7   DB 07                  IN   CASSTD   ; I/O port 7 = cassette Data
+F9E9   E6 7F                  ANI   01111111B   ; Strip off upper bit
+F9EB   C3 0B FA               JMP   OUTCAS   ; Don't echo to Cassete from Cassette
+F9EE                             ; 
+F9EE                             ; Status was TRUE: There is a char in one of the I/O ports.
+F9EE                             ; 
+F9EE   DB 08        INA:      IN   UART0   ; I/O port  1 = Single-SIO Data
+F9F0   C3 F3 F9               JMP   ASCII   ; 
+F9F3                             ; 
+F9F3   E6 7F        ASCII:    ANI   01111111B   ; Strip off upper bit
+F9F5                             ; 
+F9F5                             ; Fall through to the "output char" subroutine.
+F9F5                             ; 
+F9F5                             ; For all the checking of terminal options and cassete-I/O.
+F9F5                             ; The OUTCH or Output-Character routine doesn't change
+F9F5                             ; ANY registers except the stack; returning to the calling
+F9F5                             ; routine with all registers unchanged.
+F9F5                             ; 
+F9F5   F5           OUTCH:    PUSH   PSW   ; Save char to check if cassette echo
+F9F6   3A 9C 00               LDA   PERIOD   ; Terminal/Cassette echo switch
+F9F9   E6 04                  ANI   0100B   
+F9FB                             ;		 |||
+F9FB                             ;		 ||+--> 0 = Nothing displayed on terminal
+F9FB                             ;		 ||     1 = Chars.  displayed on terminal
+F9FB                             ;		 |+---> 2 = Input from Cassette
+F9FB                             ;		 +----> 4 = Output  to Cassette
+F9FB                             ; 
+F9FB   CA 0C FA               JZ   OUTA   ; Skip if don't want Cassette output
+F9FE                             ; 
+F9FE                             ; No: Save on cassette.
+F9FE                             ; 
+F9FE   DB 06        OUTC:     IN   CASSTS   ; I/O port 6 = cassette Status
+FA00   3C                     INR   A   ; Check if exists
+FA01   CA 0C FA               JZ   OUTA   ; If not, then skip Cassette output
+FA04   07                     RLC      ; Check Cassette status
+FA05   DA FE F9               JC   OUTC   ; Loop while waiting for char
+FA08   F1                     POP   PSW   ; Restore char
+FA09   D3 07                  OUT   CASSTD   ; I/O port 7 = cassette Data
+FA0B   F5           OUTCAS:   PUSH   PSW   ; And then save it again
+FA0C                             ; 
+FA0C                             ; Now, determine on which terminal to display the char.
+FA0C                             ; 
+FA0C   3A 9C 00     OUTA:     LDA   PERIOD   ; Terminal/Cassette echo switch
+FA0F   0F                     RRC      ; Test Terminal echo bit
+FA10                             ;               0001B
+FA10                             ;		 |||
+FA10                             ;		 ||+--> 0 = Nothing displayed on terminal
+FA10                             ;		 ||     1 = Chars.  displayed on terminal
+FA10                             ;		 |+---> 2 = Input from Cassette
+FA10                             ;		 +----> 4 = Output  to Cassette
+FA10                             ; 
+FA10   D2 0F FB               JNC   OUTD   ; No terminal output wanted; so skip
+FA13   CD 82 F9     OUTB:     CALL   POLCAT   ; Check if ready for output
+FA16   CA 13 FA               JZ   OUTB   ; Wait until ready
+FA19   F1                     POP   PSW   ; Get character back
+FA1A                          IF   MACHINE = 1   
+FA1A   D3 08                  OUT   UART0   ; I/O port 1 = Single-SIO board Data
+FA1C                          ELSE      
+                              OUT   SIO_DA   ; I/O port 1 = Single-SIO board Data
+FA1C                          ENDIF      
+FA1C   C9                     RET      ; Done
+FA1D                             ; 
+FA1D                             ;--------------------------------
+FA1D                             ; Evaluate expressions
+FA1D                             ; 
+FA1D                             ; HL = Pointer to expression to be evaluated.
+FA1D                             ; A zero-byte (end-of-line) or right-paren ")"
+FA1D                             ; Ends evaluation.
+FA1D                             ; The right-paren can be start of a comment
+FA1D                             ; or the end of a parenthesized expression
+FA1D                             ; or the end of an array definition
+FA1D                             ; 
+FA1D   CD BC FA     EVAL:     CALL   GETVAL   ; Get value of a number
+FA20                             ; 
+FA20                             ; Next term of an expression
+FA20                             ; HL = Pointer to current position in line
+FA20                             ; BC = Current value as expressed so far
+FA20                             ; 
+FA20   7E           NXTRM:    MOV   A,M   ; 
+FA21   A7                     ANA   A   ; End-of-line?
+FA22   C8                     RZ      ; Yes: Return
+FA23   FE 29                  CPI   ")"   ; No: Is it a closing parenthesis?
+FA25   CA B8 F8               JZ   OUTH   ; Yes: INC HL past paren and return
+FA28   CD 33 FA               CALL   TERM   ; No: Process term of expression
+FA2B   44                     MOV   B,H   ; Copy result of expression to BC
+FA2C   4D                     MOV   C,L   ; 
+FA2D   2A A0 00               LHLD   EVALPT   ; Load eval pointer
+FA30   C3 20 FA               JMP   NXTRM   ; and loop until end of terms found.
+FA33                             ; 
+FA33                             ;--------------------------------
+FA33                             ; Process one term of an arithmetic expression.
+FA33                             ; 
+FA33                             ; BC always comes in with last value
+FA33                             ; HL points to next operator
+FA33                             ; Character after operator is next value to be operted on
+FA33                             ; HL always returns with value of term as effected by operator
+FA33                             ; 
+FA33   C5           TERM:     PUSH   B   ; Save present-value on Stack
+FA34   7E                     MOV   A,M   ; Get operator
+FA35   F5                     PUSH   PSW   ; Save operator on stack
+FA36   23                     INX   H   ; Point to next value to be worked with
+FA37   CD BC FA               CALL   GETVAL   ; Get value of next number or variable
+FA3A                             ;			  New value returns in BC
+FA3A   22 A0 00               SHLD   EVALPT   ; Save save current position in line
+FA3D   F1                     POP   PSW   ; Restore operator for testing
+FA3E   E1                     POP   H   ; Place old value in HL
+FA3F                             ; 
+FA3F                             ; Is it addition?
+FA3F                             ; 
+FA3F   FE 2B                  CPI   "+"   ; Addition?
+FA41   C2 46 FA               JNZ   EVAL2   ; No: Check next arithmetic operation
+FA44                             ; 
+FA44                             ; Yes: 16-bit addition.
+FA44                             ; 
+FA44   09                     DAD   B   ; Add BC to HL
+FA45   C9                     RET      ; Result in HL
+FA46                             ; 
+FA46                             ;--------------------------------
+FA46                             ; Is it subtraction?
+FA46                             ; 
+FA46   FE 2D        EVAL2:    CPI   "-"   ; Subtraction?
+FA48   C2 52 FA               JNZ   EVAL3   ; No: Check next arithmetic operation
+FA4B                             ; 
+FA4B                             ; Yes: 16-bit subtraction subroutine.
+FA4B                             ; 
+FA4B   7D           HSUBB:    MOV   A,L   ; Subtract BC from HL
+FA4C   91                     SUB   C   ; 
+FA4D   6F                     MOV   L,A   ; 
+FA4E   7C                     MOV   A,H   ; 
+FA4F   98                     SBB   B   ; 
+FA50   67                     MOV   H,A   ; 
+FA51   C9                     RET      ; Result in HL Carry in flags
+FA52                             ; 
+FA52                             ;--------------------------------
+FA52                             ; Is it multiplication?
+FA52                             ; 
+FA52   FE 2A        EVAL3:    CPI   "*"   ; 
+FA54   C2 6C FA               JNZ   EVAL4   ; No: Check next arithmetic operation
+FA57                             ; 
+FA57                             ; Yes: 16-bit multiplication subroutine.
+FA57                             ; 
+FA57   EB                     XCHG      ; Put multiplicand in DE
+FA58   21 00 00               LXI   H,0000H   ; Clear partial product
+FA5B   3E 10                  MVI   A,10H   ; Set loop count to 16 bits
+FA5D   F5           MULT1:    PUSH   PSW   ; Save it on Stack
+FA5E   29                     DAD   H   ; Add to product
+FA5F   EB                     XCHG      ; Put it into DE
+FA60   29                     DAD   H   ; Add to product
+FA61   EB                     XCHG      ; Put it into HL
+FA62   D2 66 FA               JNC   MULT2   ; If the result has 17 bits,
+FA65                             ; 
+FA65   09                     DAD   B   ;   add multiplier to product.
+FA66   F1           MULT2:    POP   PSW   ; Restore count
+FA67   3D                     DCR   A   ; Decrement it
+FA68   C2 5D FA               JNZ   MULT1   ; Not end: Loop
+FA6B                             ; 
+FA6B   C9                     RET      ; Result in HL
+FA6C                             ; 
+FA6C                             ;--------------------------------
+FA6C                             ; Is it division?
+FA6C                             ; 
+FA6C   FE 2F        EVAL4:    CPI   "/"   ; Division?
+FA6E   C2 99 FA               JNZ   EVAL5   ; No: Now, check relational operators
+FA71                             ; 
+FA71   EB                     XCHG      ; Swap current number into dividend
+FA72   CD 7A FA               CALL   DIV   ; Yes: Use division subroutine
+FA75   22 8A 00               SHLD   PERCNT   ; Save remainder of divide operation
+FA78   EB                     XCHG      ; 
+FA79   C9                     RET      ; Result in HL
+FA7A                             ; 
+FA7A                             ;--------------------------------
+FA7A                             ; 16-bit division subroutine.
+FA7A                             ; 
+FA7A                             ; On entry:
+FA7A                             ; BC: divisor, DE: dividend
+FA7A                             ; On return:
+FA7A                             ; BC: divisor, DE: quotient, HL: remainder
+FA7A                             ; 
+FA7A                             ; The divide routine shifs the dividend left 16 bits
+FA7A                             ; A bit at a time into the remainder
+FA7A                             ; With each shift-left (*2) the divisor is subtracted;
+FA7A                             ; and if a good subtract, a new bit for the quotient
+FA7A                             ; is put in the result.
+FA7A                             ; 
+FA7A   21 00 00     DIV:      LXI   H,0000H   ; Initialize remainder in HL
+FA7D   78                     MOV   A,B   ; Checks if 16-bit divisor = zero
+FA7E   B1                     ORA   C   ; 
+FA7F   3E 10                  MVI   A,16   ; Set loop count to 16 bits
+FA81   C8           DIV1:     RZ      ; Yes: Return (division by zero is forbidden)
+FA82   F5                     PUSH   PSW   ; Save loop-count on Stack
+FA83   29                     DAD   H   ; Remainder * 2 Since dividend will be shifted
+FA84   EB                     XCHG      ; 
+FA85   29                     DAD   H   ; And dividend * 2
+FA86   EB                     XCHG      ; 
+FA87   D2 8B FA               JNC   DIV2   ; Shift high-bit from dividend into remainder
+FA8A   23                     INX   H   ; 
+FA8B   CD 4B FA     DIV2:     CALL   HSUBB   ; Subtract Divisor from Current remainder
+FA8E   13                     INX   D   ; If good subtract, then shift bit to quotient
+FA8F   D2 94 FA               JNC   DIV3   ; And continue if good
+FA92   09                     DAD   B   ; Else add subtracted number back
+FA93   1B                     DCX   D   ; And remove shifted-in bit
+FA94   F1           DIV3:     POP   PSW   ; Restore loop count
+FA95   3D                     DCR   A   ; Decrement it
+FA96   C3 81 FA               JMP   DIV1   ; Not end: Loop
+FA99                             ; 
+FA99                             ;--------------------------------
+FA99                             ; Now, check the relational operators.
+FA99                             ; 
+FA99   EB           EVAL5:    XCHG      ; Move old-value to DE for tests
+FA9A   21 00 00               LXI   H,0000H   ; Init HL with FALSE value
+FA9D                             ; 
+FA9D                             ;--------------------------------
+FA9D                             ; Is it equality-test?
+FA9D                             ; 
+FA9D   D6 3D        EVIL5:    SUI   "="   ; 
+FA9F   C2 AA FA               JNZ   EVIL6   ; No: Check next relational operators
+FAA2                             ; 
+FAA2   7A                     MOV   A,D   ; Get low byte
+FAA3   B8                     CMP   B   ; And check with high-byte
+FAA4   C0                     RNZ      ; Return if value not zero
+FAA5   7B                     MOV   A,E   ; Get low byte
+FAA6   B9                     CMP   C   ; And check with high-byte
+FAA7   C0                     RNZ      ; Return if value not zero
+FAA8   23                     INX   H   ; Yes: = 1 (TRUE value)
+FAA9   C9                     RET      ; 
+FAAA                             ; 
+FAAA                             ;--------------------------------
+FAAA                             ; Is it greater-than-or-equals test?
+FAAA                             ; 
+FAAA   3D           EVIL6:    DCR   A   ; "=" - 1 = "<"
+FAAB   CA B5 FA               JZ   EVIL7   ; Yes: Check relational operator
+FAAE                             ; 
+FAAE                             ; Default is less-than test.
+FAAE                             ; 
+FAAE   7B                     MOV   A,E   ; Subtract BC from DE
+FAAF   91                     SUB   C   ; 
+FAB0   7A                     MOV   A,D   ; 
+FAB1   98                     SBB   B   ; 
+FAB2   D0                     RNC      ; Return if test is FALSE
+FAB3   23                     INX   H   ; = 1 (TRUE value)
+FAB4   C9                     RET      ; 
+FAB5                             ; 
+FAB5                             ;--------------------------------
+FAB5                             ; Test for greater-than-or-equals
+FAB5                             ; 
+FAB5   7B           EVIL7:    MOV   A,E   ; Subtract BC from DE
+FAB6   91                     SUB   C   ; 
+FAB7   7A                     MOV   A,D   ; 
+FAB8   98                     SBB   B   ; 
+FAB9   D8                     RC      ; Return if test is FALSE
+FABA   23                     INX   H   ; = 1 (TRUE value)
+FABB   C9                     RET      ; 
+FABC                             ; 
+FABC                             ;--------------------------------
+FABC                             ; Get next value
+FABC                             ; 
+FABC                             ; HL = Pointer to variable or other to be evaluated.
+FABC                             ; BC returns value
+FABC                             ; 
+FABC   CD 26 FB     GETVAL:   CALL   CVBIN   ; Convert to binary number
+FABF                             ; 
+FABF   D0                     RNC      ; It was a number: Done
+FAC0                             ; 
+FAC0   FE 3F                  CPI   "?"   ; Is it a PRINT statement?
+FAC2   23                     INX   H   ; Increment mem ptr past ?
+FAC3   C2 D3 FA               JNZ   VAR   ; No: Check if it is a variable name
+FAC6                             ; 
+FAC6                             ; Yes: ?
+FAC6                             ; 
+FAC6   22 B2 00               SHLD   VALVAR   ; Save value of variable?
+FAC9   CD 58 FB               CALL   INLN   ; Get line from operator
+FACC                             ; 
+FACC   CD 1D FA               CALL   EVAL   ; Evaluate line
+FACF   2A B2 00               LHLD   VALVAR   ; Return value of line operator enters
+FAD2   C9                     RET      ; 
+FAD3                             ; 
+FAD3                             ;--------------------------------
+FAD3                             ; Is it a variable name?
+FAD3                             ; 
+FAD3                             ; BC: ?, DE: ?, HL: ?
+FAD3                             ; 
+FAD3   FE 24        VAR:      CPI   "$"   ; Is it an String-INPUT statement?
+FAD5   C2 DF FA               JNZ   VAR1   ; No: Check next possibility
+FAD8                             ; 
+FAD8   CD D3 F9               CALL   INCH   ; Yes: Input next char
+FADB                             ; 
+FADB   4F                     MOV   C,A   ; 
+FADC   06 00                  MVI   B,00H   ; Make sure a char is a byte value
+FADE   C9                     RET      ; 
+FADF                             ; 
+FADF                             ; Is it the start of an expression?
+FADF                             ; 
+FADF   FE 28        VAR1:     CPI   "("   ; If left-paren, then
+FAE1   CA 1D FA               JZ   EVAL   ; Evaluate whole expression
+FAE4                             ; 
+FAE4   2B                     DCX   H   ; No: Re-point to character
+FAE5                             ; 
+FAE5   CD FC FA     VAR2:     CALL   CONVP   ; Get line and convert to value
+FAE8                             ; 
+FAE8   4E                     MOV   C,M   ; 
+FAE9   23                     INX   H   ; 
+FAEA   46                     MOV   B,M   ; 
+FAEB   2A AC 00               LHLD   RESULT   ; ?
+FAEE   C9                     RET      ; 
+FAEF                             ; 
+FAEF                             ;--------------------------------
+FAEF                             ; Obviously, deal with array DEEK/DOKE...
+FAEF                             ; 
+FAEF   CD 1D FA     ARRAY:    CALL   EVAL   ; Evaluate expression to find which element
+FAF2                             ; 
+FAF2   22 AC 00               SHLD   RESULT   ; Save result of evaluation?
+FAF5   2A 8C 00               LHLD   AMPERS   ; Get address of next byte of user program
+FAF8   09                     DAD   B   ; 
+FAF9   09                     DAD   B   ; Two bytes for every element in array
+FAFA   F1                     POP   PSW   ; 
+FAFB   C9                     RET      ; Return with pointer to array in HL
+FAFC                             ; 
+FAFC                             ;--------------------------------
+FAFC                             ; Convert character to pointer to memory
+FAFC                             ; HL returns with pointer to value
+FAFC                             ; 
+FAFC   7E           CONVP:    MOV   A,M   ; Get variable letter
+FAFD   23                     INX   H   ; 
+FAFE   F5                     PUSH   PSW   ; 
+FAFF   FE 3A                  CPI   ":"   ; Is it the start of an array statement?
+FB01   CA EF FA               JZ   ARRAY   ; Yes: Go to ARRAY subroutine
+FB04                             ; 
+FB04                             ; All characters map as:
+FB04                             ; "@" to "_" as 00H to 1FH (Includes "A" to "Z")
+FB04                             ; " " to "?" as 20H to 3FH (Includes "0" to "9")
+FB04                             ; Note inversion!
+FB04                             ; "@" maps BEFORE space not after it
+FB04                             ; 
+FB04   22 AC 00               SHLD   RESULT   ; Save value of expression
+FB07   E6 3F                  ANI   00111111B   ; = 3FH (Uppercase Only)
+FB09   21 20 00               LXI   H,AT/2   ; We're going to double this, so ....
+FB0C   85                     ADD   L   ; Add Character offset into var table
+FB0D   6F                     MOV   L,A   ; Calculate standard letter variables
+FB0E   29                     DAD   H   ; 2 bytes for each variable
+FB0F                             ; 
+FB0F                             ; "Output a char" also uses those 2 instructions...
+FB0F                             ; 
+FB0F   F1           OUTD:     POP   PSW   ; Restore accumulator
+FB10   C9                     RET      ; 
+FB11                             ; 
+FB11                             ;--------------------------------
+FB11                             ; Table of powers of 10.
+FB11                             ; 
+FB11   10 27        PWRS10:   DW   10000   
+FB13   E8 03                  DW   1000   
+FB15   64 00                  DW   100   
+FB17   0A 00                  DW   10   
+FB19   01 00                  DW   1   
+FB1B                             ; 
+FB1B                             ;--------------------------------
+FB1B                             ; Test if character is an ASCII numeric
+FB1B                             ; 
+FB1B   7E           TSTN:     MOV   A,M   ; Get char
+FB1C   FE 3A                  CPI   "9"+1   ; Is it > "9" ?
+FB1E   3F                     CMC      ; 
+FB1F   D8                     RC      ; 
+FB20   FE 30                  CPI   "0"   ; Is it < "0" ?
+FB22   C9                     RET      ; 
+FB23                             ; 
+FB23                             ;--------------------------------
+FB23                             ; Get line and convert it to a value
+FB23                             ; 
+FB23   CD 58 FB     CVTLN:    CALL   INLN   ; 
+FB26                             ; 
+FB26                             ; Convert to binary number.
+FB26                             ; If non-numeric, then carry set and character is in A
+FB26                             ; If numeric, then carry clear, and value returned in BC
+FB26                             ; 
+FB26   CD 1B FB     CVBIN:    CALL   TSTN   ; Is it a number?
+FB29   D8                     RC      ; No: Return
+FB2A                             ; 
+FB2A                             ; Yes: Convert the ASCII char to binary number.
+FB2A                             ; 
+FB2A   01 00 00               LXI   B,0000H   ; Clear initial value in BC
+FB2D   7E           CBLOOP:   MOV   A,M   ; Get next numeric char
+FB2E   D6 30                  SUI   "0"   ; Convert from ASCII to binary
+FB30   81                     ADD   C   ; Add to value already in BC
+FB31   4F                     MOV   C,A   ; 
+FB32   3E 00                  MVI   A,00H   ; 
+FB34   88                     ADC   B   ; 
+FB35   47                     MOV   B,A   ; 
+FB36   23                     INX   H   ; Point to next char
+FB37   CD 1B FB               CALL   TSTN   ; Is it a number?
+FB3A   3F                     CMC      ; 
+FB3B   D0                     RNC      ; No: Return with value in BC and Carry cleared
+FB3C                             ; 
+FB3C                             ; Yes: multiply old number in BC by ten to put new number in
+FB3C                             ; 
+FB3C   E5                     PUSH   H   ; Save pointer
+FB3D   60                     MOV   H,B   ; Copy BC to HL
+FB3E   69                     MOV   L,C   ; 
+FB3F   29                     DAD   H   ; HL = BC times 2
+FB40   29                     DAD   H   ; HL = BC times 4
+FB41   09                     DAD   B   ; HL = BC times 5
+FB42   29                     DAD   H   ; HL = BC times 10
+FB43   44                     MOV   B,H   ; Move result back to BC
+FB44   4D                     MOV   C,L   ; 
+FB45   E1                     POP   H   ; Restore pointer
+FB46   C3 2D FB               JMP   CBLOOP   ; Loop until not a number
+FB49                             ; 
+FB49                             ;--------------------------------
+FB49                             ; Process line input from terminal.
+FB49                             ; 
+FB49   FE 40        INLN6:    CPI   "@"   ; Discard line inputted?
+FB4B   CA 55 FB               JZ   NEWLIN   ; Yes: Start a new line
+FB4E                             ; 
+FB4E                             ; No: We are in a line. Are we at the end?
+FB4E                             ; 
+FB4E   23                     INX   H   ; Increment line pointer
+FB4F   7D                     MOV   A,L   ; Get its low byte
+FB50   FE 0D                  CPI   lsb(LINBUF+73)   ; Are we at the end of the line?
+FB52   C2 62 FB               JNZ   INLN2   ; No: Get next char
+FB55                             ; 
+FB55                             ; Yes: Start a new line on the terminal.
+FB55                             ; 
+FB55   CD 83 FB     NEWLIN:   CALL   CRLF   ; Return "cursor" at beginning of next line
+FB58                             ; 
+FB58                             ;         Subroutine __________________________
+FB58                             ; 
+FB58   21 C5 00     INLN:     LXI   H,LINBUF+1   ; Point to first char in line buffer
+FB5B                             ; 
+FB5B                             ; Check if we reached the beginning of the line,
+FB5B                             ; that is to say: erased all the line, backspacing chars.
+FB5B                             ; 
+FB5B   2B           INLN5:    DCX   H   ; Point before the first char
+FB5C   7D                     MOV   A,L   ; 
+FB5D   FE C3                  CPI   lsb(LINBUF-1)   ; Is it the beginning of the line?
+FB5F   CA 55 FB               JZ   NEWLIN   ; Yes: Start a new line
+FB62                             ; 
+FB62                             ; Not at end of line: Get another char, and check it.
+FB62                             ; 
+FB62   CD D3 F9     INLN2:    CALL   INCH   ; Input another char
+FB65                             ; 
+FB65   77                     MOV   M,A   ; Sve it in line
+FB66   FE 5F                  CPI   "_"   ; Backspace to erase a char?
+FB68   CA 5B FB               JZ   INLN5   ; Yes: Check if we erased everything
+FB6B                             ; 
+FB6B                             ; No: Check if the user had ended inputting a line.
+FB6B                             ; 
+FB6B   FE 0D        INLN3:    CPI   CR   ; 
+FB6D   DA 62 FB               JC   INLN2   ; No: Get another char
+FB70                             ; 
+FB70   C2 49 FB               JNZ   INLN6   ; Yes: Go proceed another line
+FB73                             ; 
+FB73   AF           INLN4:    XRA   A   ; Mark end of line with a 00H
+FB74   77                     MOV   M,A   ; 
+FB75   21 C4 00               LXI   H,LINBUF   ; Point back to beginning of line
+FB78   C3 88 FB               JMP   PRLF   ; It was CR: add LF and done
+FB7B                             ; 
+FB7B                             ;--------------------------------
+FB7B                             ; 
+FB7B   23           QUOTE2:   INX   H   ; Skip beginning quote
+FB7C                             ; 
+FB7C                             ;         Subroutine __________________________
+FB7C                             ; 
+FB7C   CD BA F9     STRNG:    CALL   STRMSG   ; Print string
+FB7F   7E                     MOV   A,M   ; Get char *after* delimiter
+FB80   FE 3B                  CPI   ";"   ; Is it a semicolon?
+FB82   C8                     RZ      ; Yes: Then, no CR/LF after PRINT
+FB83                             ; 
+FB83                             ; No: End of line reached, output CR and LF.
+FB83                             ; 
+FB83   3E 0D        CRLF:     MVI   A,CR   ; Carriage-Return
+FB85   CD F5 F9               CALL   OUTCH   ; 
+FB88   3E 0A        PRLF:     MVI   A,LF   ; Line-Feed
+FB8A   CD F5 F9               CALL   OUTCH   ; 
+FB8D                             ; 
+FB8D                             ;	System Variable COMMA subroutine.
+FB8D                             ; 
+FB8D                             ; Outputs the number of null bytes (00H) stored in COMMA,
+FB8D                             ; while the printhead of the ASR-33 Teletype returns to
+FB8D                             ; the left side of the roll of punched paper.
+FB8D                             ; 
+FB8D   3A 98 00               LDA   COMMA   ; Number of null bytes after cr/lf
+FB90   3D           NULL:     DCR   A   ; Number should be less than 128
+FB91   F8                     RM      ; Return if no more nulls wanted
+FB92   F5                     PUSH   PSW   ; 
+FB93   AF                     XRA   A   ; = Null byte in A-reg
+FB94   CD F5 F9               CALL   OUTCH   ; 
+FB97   F1                     POP   PSW   ; 
+FB98   C3 90 FB               JMP   NULL   ; Loop the number of null bytes
+FB9B                             ; 
+FB9B                             ;--------------------------------
+FB9B                             ; 
+FB9B   0D 0A 4F 4B 00 OKM:    DB   CR,LF,"OK",00H   
+FBA0                             ; 
+FBA0                             ;--------------------------------
+FBA0                             ; 
+FBA0                          END      
+
+
+MACHINE:            0001 DEFINED AT LINE 1
+CASSTS:             0006 DEFINED AT LINE 12
+                    > USED AT LINE 651
+                    > USED AT LINE 685
+CASSTD:             0007 DEFINED AT LINE 13
+                    > USED AT LINE 654
+                    > USED AT LINE 691
+UART_BASE:          0008 DEFINED AT LINE 15
+                    > USED AT LINE 16
+                    > USED AT LINE 17
+                    > USED AT LINE 18
+                    > USED AT LINE 19
+                    > USED AT LINE 20
+                    > USED AT LINE 21
+                    > USED AT LINE 22
+                    > USED AT LINE 23
+UART0:              0008 DEFINED AT LINE 16
+                    > USED AT LINE 660
+                    > USED AT LINE 710
+UART1:              0009 DEFINED AT LINE 17
+UART2:              000A DEFINED AT LINE 18
+UART3:              000B DEFINED AT LINE 19
+UART4:              000C DEFINED AT LINE 20
+UART5:              000D DEFINED AT LINE 21
+                    > USED AT LINE 530
+UART6:              000E DEFINED AT LINE 22
+UART7:              000F DEFINED AT LINE 23
+SIO_BASE:           0018 DEFINED AT LINE 25
+                    > USED AT LINE 26
+                    > USED AT LINE 27
+                    > USED AT LINE 28
+                    > USED AT LINE 29
+SIO_DA:             0018 DEFINED AT LINE 26
+SIO_CA:             0019 DEFINED AT LINE 27
+SIO_DB:             001A DEFINED AT LINE 28
+SIO_CB:             001B DEFINED AT LINE 29
+CLEAR:              0001 DEFINED AT LINE 76
+                    > USED AT LINE 166
+INTCI:              0011 DEFINED AT LINE 77
+CTRLC:              0003 DEFINED AT LINE 82
+                    > USED AT LINE 626
+LF:                 000A DEFINED AT LINE 83
+                    > USED AT LINE 1124
+                    > USED AT LINE 1144
+CR:                 000D DEFINED AT LINE 84
+                    > USED AT LINE 1099
+                    > USED AT LINE 1122
+                    > USED AT LINE 1144
+BRKPNT:             0000 DEFINED AT LINE 92
+                    > USED AT LINE 398
+RST0:               0000 DEFINED AT LINE 93
+RST1:               0008 DEFINED AT LINE 94
+RST2:               0010 DEFINED AT LINE 95
+RST3:               0018 DEFINED AT LINE 96
+RST4:               0020 DEFINED AT LINE 97
+RST5:               0028 DEFINED AT LINE 98
+RST6:               0030 DEFINED AT LINE 99
+RST7:               0038 DEFINED AT LINE 100
+AT:                 0040 DEFINED AT LINE 101
+                    > USED AT LINE 990
+VARS:               0042 DEFINED AT LINE 102
+BRAK:               0076 DEFINED AT LINE 103
+SLISH:              0078 DEFINED AT LINE 104
+BRIK:               007A DEFINED AT LINE 105
+UP:                 007C DEFINED AT LINE 106
+LINPTR:             007E DEFINED AT LINE 107
+                    > USED AT LINE 216
+                    > USED AT LINE 224
+                    > USED AT LINE 315
+                    > USED AT LINE 336
+                    > USED AT LINE 431
+                    > USED AT LINE 477
+SPAC:               0080 DEFINED AT LINE 108
+EXCLAM:             0082 DEFINED AT LINE 109
+                    > USED AT LINE 228
+QUOTE:              0084 DEFINED AT LINE 110
+NUMBR:              0086 DEFINED AT LINE 111
+                    > USED AT LINE 202
+                    > USED AT LINE 215
+                    > USED AT LINE 268
+                    > USED AT LINE 281
+                    > USED AT LINE 333
+                    > USED AT LINE 488
+DOLLAR:             0088 DEFINED AT LINE 112
+PERCNT:             008A DEFINED AT LINE 113
+                    > USED AT LINE 821
+AMPERS:             008C DEFINED AT LINE 114
+                    > USED AT LINE 232
+                    > USED AT LINE 286
+                    > USED AT LINE 330
+                    > USED AT LINE 442
+                    > USED AT LINE 473
+                    > USED AT LINE 966
+QUITE:              008E DEFINED AT LINE 115
+                    > USED AT LINE 408
+                    > USED AT LINE 410
+PAREN:              0090 DEFINED AT LINE 116
+PARIN:              0092 DEFINED AT LINE 117
+STAR:               0094 DEFINED AT LINE 118
+                    > USED AT LINE 462
+PLUS:               0096 DEFINED AT LINE 119
+COMMA:              0098 DEFINED AT LINE 120
+                    > USED AT LINE 169
+                    > USED AT LINE 1133
+MINUS:              009A DEFINED AT LINE 121
+PERIOD:             009C DEFINED AT LINE 122
+                    > USED AT LINE 167
+                    > USED AT LINE 639
+                    > USED AT LINE 673
+                    > USED AT LINE 696
+SLASH:              009E DEFINED AT LINE 123
+EVALPT:             00A0 DEFINED AT LINE 125
+                    > USED AT LINE 741
+                    > USED AT LINE 758
+SV1:                00A2 DEFINED AT LINE 126
+SV2:                00A4 DEFINED AT LINE 127
+SV3:                00A6 DEFINED AT LINE 128
+SV4:                00A8 DEFINED AT LINE 129
+SV5:                00AA DEFINED AT LINE 130
+RESULT:             00AC DEFINED AT LINE 131
+                    > USED AT LINE 957
+                    > USED AT LINE 965
+                    > USED AT LINE 988
+LINUMB:             00AE DEFINED AT LINE 132
+                    > USED AT LINE 261
+                    > USED AT LINE 371
+CURENT:             00B0 DEFINED AT LINE 133
+                    > USED AT LINE 278
+                    > USED AT LINE 445
+                    > USED AT LINE 494
+VALVAR:             00B2 DEFINED AT LINE 134
+                    > USED AT LINE 924
+                    > USED AT LINE 928
+COLN:               00B4 DEFINED AT LINE 136
+SEMI:               00B6 DEFINED AT LINE 137
+LESS:               00B8 DEFINED AT LINE 138
+EQAL:               00BA DEFINED AT LINE 139
+GRAT:               00BC DEFINED AT LINE 140
+DECBUF:             00BE DEFINED AT LINE 142
+                    > USED AT LINE 570
+                    > USED AT LINE 600
+LASTD:              00C2 DEFINED AT LINE 143
+DELIM:              00C3 DEFINED AT LINE 144
+                    > USED AT LINE 193
+LINBUF:             00C4 DEFINED AT LINE 145
+                    > USED AT LINE 1079
+                    > USED AT LINE 1106
+STACK:              0140 DEFINED AT LINE 153
+                    > USED AT LINE 191
+PRGM:               0140 DEFINED AT LINE 154
+                    > USED AT LINE 288
+                    > USED AT LINE 335
+RSTRT:              F800 DEFINED AT LINE 164
+START:              F810 DEFINED AT LINE 191
+                    > USED AT LINE 206
+                    > USED AT LINE 212
+                    > USED AT LINE 294
+                    > USED AT LINE 468
+                    > USED AT LINE 627
+LOOP:               F81D DEFINED AT LINE 201
+                    > USED AT LINE 449
+                    > USED AT LINE 502
+LOOP2:              F82F DEFINED AT LINE 208
+                    > USED AT LINE 229
+EQSTRT:             F832 DEFINED AT LINE 212
+                    > USED AT LINE 237
+LOOP3:              F858 DEFINED AT LINE 231
+                    > USED AT LINE 223
+                    > USED AT LINE 226
+LXHN:               F865 DEFINED AT LINE 242
+                    > USED AT LINE 214
+                    > USED AT LINE 225
+                    > USED AT LINE 426
+CPHD:               F869 DEFINED AT LINE 251
+                    > USED AT LINE 292
+EXEC:               F86F DEFINED AT LINE 261
+                    > USED AT LINE 205
+                    > USED AT LINE 220
+SKIP:               F876 DEFINED AT LINE 265
+OUTX:               F87A DEFINED AT LINE 268
+STMNT:              F880 DEFINED AT LINE 278
+                    > USED AT LINE 204
+LST2:               F894 DEFINED AT LINE 292
+                    > USED AT LINE 310
+NXTXT:              F8AE DEFINED AT LINE 315
+                    > USED AT LINE 357
+                    > USED AT LINE 428
+LOOKAG:             F8B2 DEFINED AT LINE 317
+                    > USED AT LINE 320
+OUTH:               F8B8 DEFINED AT LINE 324
+                    > USED AT LINE 737
+FIND:               F8BA DEFINED AT LINE 330
+                    > USED AT LINE 208
+                    > USED AT LINE 423
+FND2:               F8C6 DEFINED AT LINE 336
+                    > USED AT LINE 359
+NXTUU:              F8D1 DEFINED AT LINE 346
+                    > USED AT LINE 339
+FND3:               F8D9 DEFINED AT LINE 357
+                    > USED AT LINE 236
+EVIL:               F8DF DEFINED AT LINE 365
+                    > USED AT LINE 266
+ANDT:               F8F8 DEFINED AT LINE 383
+                    > USED AT LINE 376
+CPBD:               F90B DEFINED AT LINE 414
+                    > USED AT LINE 432
+                    > USED AT LINE 485
+SKP2:               F911 DEFINED AT LINE 423
+                    > USED AT LINE 284
+DELT:               F924 DEFINED AT LINE 432
+                    > USED AT LINE 438
+FITIT:              F931 DEFINED AT LINE 442
+                    > USED AT LINE 433
+INSRT:              F936 DEFINED AT LINE 445
+                    > USED AT LINE 425
+                    > USED AT LINE 427
+CNTLN:              F941 DEFINED AT LINE 451
+                    > USED AT LINE 455
+OPEN:               F948 DEFINED AT LINE 459
+SLIDE:              F962 DEFINED AT LINE 481
+                    > USED AT LINE 486
+DON:                F96C DEFINED AT LINE 488
+MOVL:               F977 DEFINED AT LINE 496
+                    > USED AT LINE 501
+POLCAT:             F982 DEFINED AT LINE 530
+                    > USED AT LINE 623
+                    > USED AT LINE 633
+                    > USED AT LINE 706
+PRNT2:              F98B DEFINED AT LINE 570
+                    > USED AT LINE 301
+                    > USED AT LINE 384
+CVD1:               F991 DEFINED AT LINE 572
+                    > USED AT LINE 593
+ZRSUP:              F9B2 DEFINED AT LINE 601
+                    > USED AT LINE 604
+PNTMSG:             F9B9 DEFINED AT LINE 608
+                    > USED AT LINE 305
+STRMSG:             F9BA DEFINED AT LINE 613
+                    > USED AT LINE 1115
+OUTMSG:             F9BB DEFINED AT LINE 614
+                    > USED AT LINE 619
+CONTC:              F9C7 DEFINED AT LINE 623
+                    > USED AT LINE 617
+INCH:               F9D3 DEFINED AT LINE 633
+                    > USED AT LINE 625
+                    > USED AT LINE 647
+                    > USED AT LINE 653
+                    > USED AT LINE 939
+                    > USED AT LINE 1091
+INA:                F9EE DEFINED AT LINE 660
+                    > USED AT LINE 634
+ASCII:              F9F3 DEFINED AT LINE 663
+                    > USED AT LINE 618
+                    > USED AT LINE 661
+OUTCH:              F9F5 DEFINED AT LINE 672
+                    > USED AT LINE 379
+                    > USED AT LINE 1123
+                    > USED AT LINE 1125
+                    > USED AT LINE 1138
+OUTC:               F9FE DEFINED AT LINE 685
+                    > USED AT LINE 689
+OUTCAS:             FA0B DEFINED AT LINE 692
+                    > USED AT LINE 656
+OUTA:               FA0C DEFINED AT LINE 696
+                    > USED AT LINE 681
+                    > USED AT LINE 687
+OUTB:               FA13 DEFINED AT LINE 706
+                    > USED AT LINE 707
+EVAL:               FA1D DEFINED AT LINE 727
+                    > USED AT LINE 368
+                    > USED AT LINE 927
+                    > USED AT LINE 948
+                    > USED AT LINE 963
+NXTRM:              FA20 DEFINED AT LINE 733
+                    > USED AT LINE 742
+TERM:               FA33 DEFINED AT LINE 752
+                    > USED AT LINE 738
+EVAL2:              FA46 DEFINED AT LINE 775
+                    > USED AT LINE 765
+HSUBB:              FA4B DEFINED AT LINE 780
+                    > USED AT LINE 851
+EVAL3:              FA52 DEFINED AT LINE 791
+                    > USED AT LINE 776
+MULT1:              FA5D DEFINED AT LINE 799
+                    > USED AT LINE 809
+MULT2:              FA66 DEFINED AT LINE 807
+                    > USED AT LINE 804
+EVAL4:              FA6C DEFINED AT LINE 816
+                    > USED AT LINE 792
+DIV:                FA7A DEFINED AT LINE 839
+                    > USED AT LINE 582
+                    > USED AT LINE 820
+DIV1:               FA81 DEFINED AT LINE 843
+                    > USED AT LINE 858
+DIV2:               FA8B DEFINED AT LINE 851
+                    > USED AT LINE 849
+DIV3:               FA94 DEFINED AT LINE 856
+                    > USED AT LINE 853
+EVAL5:              FA99 DEFINED AT LINE 863
+                    > USED AT LINE 817
+EVIL5:              FA9D DEFINED AT LINE 869
+EVIL6:              FAAA DEFINED AT LINE 884
+                    > USED AT LINE 870
+EVIL7:              FAB5 DEFINED AT LINE 900
+                    > USED AT LINE 885
+GETVAL:             FABC DEFINED AT LINE 914
+                    > USED AT LINE 727
+                    > USED AT LINE 756
+VAR:                FAD3 DEFINED AT LINE 936
+                    > USED AT LINE 920
+VAR1:               FADF DEFINED AT LINE 947
+                    > USED AT LINE 937
+VAR2:               FAE5 DEFINED AT LINE 952
+                    > USED AT LINE 262
+ARRAY:              FAEF DEFINED AT LINE 963
+                    > USED AT LINE 980
+CONVP:              FAFC DEFINED AT LINE 976
+                    > USED AT LINE 372
+                    > USED AT LINE 952
+OUTD:               FB0F DEFINED AT LINE 997
+                    > USED AT LINE 705
+PWRS10:             FB11 DEFINED AT LINE 1003
+                    > USED AT LINE 571
+TSTN:               FB1B DEFINED AT LINE 1012
+                    > USED AT LINE 1028
+                    > USED AT LINE 1042
+CVTLN:              FB23 DEFINED AT LINE 1022
+                    > USED AT LINE 203
+CVBIN:              FB26 DEFINED AT LINE 1028
+                    > USED AT LINE 914
+CBLOOP:             FB2D DEFINED AT LINE 1034
+                    > USED AT LINE 1058
+INLN6:              FB49 DEFINED AT LINE 1063
+                    > USED AT LINE 1102
+NEWLIN:             FB55 DEFINED AT LINE 1075
+                    > USED AT LINE 1064
+                    > USED AT LINE 1087
+INLN:               FB58 DEFINED AT LINE 1079
+                    > USED AT LINE 925
+                    > USED AT LINE 1022
+INLN5:              FB5B DEFINED AT LINE 1084
+                    > USED AT LINE 1095
+INLN2:              FB62 DEFINED AT LINE 1091
+                    > USED AT LINE 1071
+                    > USED AT LINE 1100
+INLN3:              FB6B DEFINED AT LINE 1099
+INLN4:              FB73 DEFINED AT LINE 1104
+QUOTE2:             FB7B DEFINED AT LINE 1111
+                    > USED AT LINE 366
+STRNG:              FB7C DEFINED AT LINE 1115
+                    > USED AT LINE 195
+CRLF:               FB83 DEFINED AT LINE 1122
+                    > USED AT LINE 307
+                    > USED AT LINE 1075
+PRLF:               FB88 DEFINED AT LINE 1124
+                    > USED AT LINE 1107
+NULL:               FB90 DEFINED AT LINE 1134
+                    > USED AT LINE 1140
+OKM:                FB9B DEFINED AT LINE 1144
+                    > USED AT LINE 194

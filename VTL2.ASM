@@ -1,3 +1,6 @@
+MACHINE:	EQU	1	; "AL80"
+;MACHINE:	EQU	2	; "MintZ80"
+
 ; VTL2.ASM
 ; ------------
 ;
@@ -8,15 +11,32 @@
 ;
 CASSTS	EQU	6	; Cassette Status
 CASSTD	EQU	7	; Cassette Data
+
+UART_BASE:	EQU 008h         ; Base port address, P8250A/USART uses 8 ports.
+UART0:       EQU    UART_BASE+00h			;Data in/out
+UART1:       EQU    UART_BASE+01h            	;Check RX
+UART2:       EQU    UART_BASE+02h            	;Interrupts
+UART3:       EQU    UART_BASE+03h            	;Line control
+UART4:       EQU    UART_BASE+04h            	;Modem control
+UART5:       EQU    UART_BASE+05h            	;Line status
+UART6:       EQU    UART_BASE+06h            	;Modem status
+UART7:       EQU    UART_BASE+07h            	;Scratch register		
+
+SIO_BASE:	EQU 018h			; SIO port
+SIO_DA:	EQU SIO_BASE
+SIO_CA:	EQU SIO_BASE+1
+SIO_DB:	EQU SIO_BASE+2
+SIO_CB:	EQU SIO_BASE+3
+
 ;--------------------------------
 ; MITS Altair or Imsai 8800 I/O ports used:
 ; If your system has one of these board's I/O addressed at a
 ; non-standard location, then just change the appropriate
 ; definition of the three below; and reassemble the program.
 ;
-SIOBRD	EQU	0	; MITS Single-SIO board usually Port-0
-SIO2BRD	EQU	16	; MITS Dual-SIO board usually Ports-16 & 18
-PTPLUSS	EQU	0	; Processor-Technology 3P+S board at Port-0
+;SIOBRD	EQU	0	; MITS Single-SIO board usually Port-0
+;SIO2BRD	EQU	16	; MITS Dual-SIO board usually Ports-16 & 18
+;PTPLUSS	EQU	0	; Processor-Technology 3P+S board at Port-0
 ;
 ;
 ; The bits input from the SENSE switches are defined as follows:
@@ -35,25 +55,25 @@ PTPLUSS	EQU	0	; Processor-Technology 3P+S board at Port-0
 ;
 ; Thus default (00H) assumes a single MITS SIO board at port-0
 ;
-SENSE	EQU	0FFH	; Sense-Switches at 0xFF on Altair 8800
+;SENSE	EQU	0FFH	; Sense-Switches at 0xFF on Altair 8800
 ;
 ; From above, we get the following:
 ;
-SIOS	EQU	SIOBRD	; MITS Single SIO board Status
-SIOD	EQU	SIOS+1	; MITS Single SIO board Data
+;SIOS	EQU	SIOBRD	; MITS Single SIO board Status
+;SIOD	EQU	SIOS+1	; MITS Single SIO board Data
 ;
-SIOS0	EQU	SIO2BRD	; MITS 2SIO Board Lower Status
-SIOD0	EQU	SIOS0+1	; MITS 2SIO Board Lower Data
-SIOS1	EQU	SIOS0+2	; MITS 2SIO Board Upper Status
-SIOD1	EQU	SIOS1+1	; MITS 2SIO Board Upper Data
+;SIOS0	EQU	SIO2BRD	; MITS 2SIO Board Lower Status
+;SIOD0	EQU	SIOS0+1	; MITS 2SIO Board Lower Data
+;SIOS1	EQU	SIOS0+2	; MITS 2SIO Board Upper Status
+;SIOD1	EQU	SIOS1+1	; MITS 2SIO Board Upper Data
 ;
-PTSS	EQU	PTPLUSS	; Processor-Technology 3P+S Serial Status
-PTSD	EQU	PTSS+1	; Processor-Technology 3P+S Serial Data
+;PTSS	EQU	PTPLUSS	; Processor-Technology 3P+S Serial Status
+;PTSD	EQU	PTSS+1	; Processor-Technology 3P+S Serial Data
 ;
 ;
 ; I/0 byte equates:
 ;
-CLEAR	EQU	03H	; Clear 2SIO boards
+CLEAR	EQU	01H	; Clear 2SIO boards
 INTCI	EQU	11H	; Sets clock and interupts on 2SIO boards
 ;
 ;--------------------------------
@@ -70,22 +90,22 @@ CR	EQU	0DH	; Carriage-Return
 ;
 	ORG	0000H	; Bottom of memory
 BRKPNT	DS	0	; Address of RST 0
-RST0:	DS	8	; Restarts
-RST1:	DS	8	;
-RST2:	DS	8	;
-RST3:	DS	8	;
-RST4:	DS	8	;
-RST5:	DS	8	;
-RST6:	DS	8	;
-RST7:	DS	8	;
-AT:	DS	2	; SV: Usable storage since '@' not allowed
-VARS:	DS	52	; Variables A - Z (26 variables)
-BRAK:	DS	2	; [
+RST0:		DS	8	; Restarts
+RST1:		DS	8	;
+RST2:		DS	8	;
+RST3:		DS	8	;
+RST4:		DS	8	;
+RST5:		DS	8	;
+RST6:		DS	8	;
+RST7:		DS	8	;
+AT:		DS	2	; SV: Usable storage since '@' not allowed
+VARS:		DS	52	; Variables A - Z (26 variables)
+BRAK:		DS	2	; [
 SLISH:	DS	2	; \
-BRIK:	DS	2	; ]
-UP:	DS	2	; ^ SV: Number of terminal option running
+BRIK:		DS	2	; ]
+UP:		DS	2	; ^ SV: Number of terminal option running
 LINPTR:	DS	2	; _ SV: Current line-pointer save
-SPAC:	DS	2	;   GV: Space
+SPAC:		DS	2	;   GV: Space
 EXCLAM:	DS	2	;   SV: RETURN pointer (Excalmation-Point)
 QUOTE:	DS	2	; "
 NUMBR:	DS	2	; # SV: Line-Number
@@ -95,29 +115,29 @@ AMPERS:	DS	2	; & SV: Next byte past user program - Array start
 QUITE:	DS	2	; ' SV: Random Number
 PAREN:	DS	2	; ( SV: Not used
 PARIN:	DS	2	; ) SV: Not used
-STAR:	DS	2	; * SV: Next byte past user program (Array area)
-PLUS:	DS	2	; + GV: General Purpose variable
+STAR:		DS	2	; * SV: Next byte past user program (Array area)
+PLUS:		DS	2	; + GV: General Purpose variable
 COMMA:	DS	2	; , SV: Number of nulls after each cr/lf
 MINUS:	DS	2	; - GV: General Purpose variable
 PERIOD:	DS	2	; . SV: Terminal echo switch
 SLASH:	DS	2	;   SV: General Purpose variable
 ;
 EVALPT:	DS	2	; 0 Eval pointer
-SV1:	DS	2	; 1 SV: Not used
-SV2:	DS	2	; 2 SV: Not used
-SV3:	DS	2	; 3 SV: Not used
-SV4:	DS	2	; 4 SV: Not used
-SV5:	DS	2	; 5 SV: Not used
+SV1:		DS	2	; 1 SV: Not used
+SV2:		DS	2	; 2 SV: Not used
+SV3:		DS	2	; 3 SV: Not used
+SV4:		DS	2	; 4 SV: Not used
+SV5:		DS	2	; 5 SV: Not used
 RESULT:	DS	2	; 6 SV: Result of expression evaluation
 LINUMB:	DS	2	; 7 SV: Line number
 CURENT:	DS	2	; 8 SV: Current line number
 VALVAR:	DS	2	; 9 SV: Value of variable?
 ;
-COLN:	DS	2	; : GV: General purpose variable
-SEMI	DS	2	; ; GV: General Purpose variable
-LESS:	DS	2	; < GV: General Purpose variable
-EQAL:	DS	2	; = GV: General Purpose variable
-GRAT:	DS	2	; > SV: Return-value from Machine-language
+COLN:		DS	2	; : GV: General purpose variable
+SEMI		DS	2	; ; GV: General Purpose variable
+LESS:		DS	2	; < GV: General Purpose variable
+EQAL:		DS	2	; = GV: General Purpose variable
+GRAT:		DS	2	; > SV: Return-value from Machine-language
 ;
 DECBUF:	DS	4	; Decimal buffer ("54321")
 LASTD:	DS	1	; Last byte in decimal-buffer
@@ -141,8 +161,11 @@ prgm	EQU	$	; Programming space: here to end of memory
 ;
 ; Cold-Start ("Boot").
 ;
-RSTRT:	LXI	H,CLEAR	; = 3 to clear various things
+RSTRT:	mvi a,01
+    out 0f8h
+    LXI	H,CLEAR	; = 3 to clear various things
 	SHLD	PERIOD	; To see the program as it comes in
+    LXI	H,0	; no null after CRLF
 	SHLD	COMMA	; Number of nulls after each cr/lf
 ;
 ; By default, VTL-2 expects that the MITS Altair 8800 system
@@ -151,12 +174,14 @@ RSTRT:	LXI	H,CLEAR	; = 3 to clear various things
 ; which one will be used, it simply initialize the 2SIO board
 ; at both I/O ports...
 ;
-	MOV	A,L	; = 3 Resets the chip of the 2SIO board
-	OUT	SIOS0	; I/O port 16 = 2SIO board Status
-	OUT	SIOS1	; I/O port 18 = 2SIO board Status
-	MVI	A,INTCI	; = 17 Sets the clock and interrupts
-	OUT	SIOS0	; I/O port 16 = 2SIO board Status
-	OUT	SIOS1	; I/O port 18 = 2SIO board Status
+;	skip init. We're entering from monitor or boot loader and SIO ports are initialized
+;	MOV	A,L	; = 3 Resets the chip of the 2SIO board
+;	OUT	SIOS0	; I/O port 16 = 2SIO board Status
+;	OUT	SIOS1	; I/O port 18 = 2SIO board Status
+;	MVI	A,INTCI	; = 17 Sets the clock and interrupts
+;	OUT	SIOS0	; I/O port 16 = 2SIO board Status
+;	OUT	SIOS1	; I/O port 18 = 2SIO board Status
+;
 ;
 ;
 ; Warm-Start (Ctrl-C).
@@ -337,7 +362,7 @@ FND3:	CALL	NXTXT	;
 ;
 ;         Subroutine to evaluate line
 ;
-EVIL:	CPI	'"'	; Is it a quote surrounding strings?
+EVIL:	CPI	022h	; Is it a quote surrounding strings?
 	JZ	QUOTE2	; Yes: go process it
 ;
 	CALL	EVAL	; No: Evaluate expression
@@ -498,34 +523,42 @@ MOVL:	INX	B	; Move line from line-buffer to program
 ; Status returns carry-flag set if input character available
 ; Status returns non-zero if output is ready for character
 ;
-POLCAT:	CALL	POLSNS	; Get terminal option currently running
-	DB	INP18-$	; 01H --> MITS 2SIO at Port-18
-	DB	INP3P-$	; 02H --> PT   3P+S at Port-0
-	DB	INP16-$	; 08H --> MITS 2SIO at Port-16
+.if MACHINE = 1
 ;
-; Else, MITS single SIO board at Port-0
+; 8250 UART of AL80
 ;
-INP0:	IN	SIOS	; I/O Port-0 = Single-SIO board
-	XRI	0FFH	; Invert bits to match 2SIO ready
-	ANI	081H	;
-	JMP	INPCR	; TBE bit to bit-6; RDA bit to carry
-;
-INP16:	IN	SIOS0	; I/O Port-16 = 2SIO board
-	JMP	INPST	; Same status bits as Port-18
-;
-INP18:	IN	SIOS1	; I/O Port-18 = 2SIO board
-INPST:	ANI	03H	; Just check I/O bits on 2SIO
-INPCR:	RAR		; TBE bit to bit-0; RDA bit to carry
-INPCK:	RNC		; Zero and carry status right if low
+POLCAT:	IN	UART5	; I/O Port-0 = Single-SIO board
+	ANI	021H	; bit0 = RX data available, bit5 TX empty
+	RAR		; TBE bit to bit-4; RDA bit to carry
+	RNC		; Zero and carry status right if low
 	ANA	A	; Else check new shifted output bit
 	STC		; And set the carry
 	RET		; Return with status
+.else		; Z80 SIO/0
 ;
-INP3P:	IN	PTSS	; I/O Port-0 = 3P+S
-	ANI	0C0H	; Just check I/O bits on 3P+S
-	RAL		; TBE bit to bit-0; RDA bit to carry
-	RAL		;
-	JMP	INPCK	; Check status bits
+; SIO/0 UART of MintZ80
+;
+POLCAT:	push b
+	mvi a,1		; select RR1
+	out SIO_CA
+	in SIO_CA
+	ani 001h		; 7c bit 0 is TX ready
+	ral			; rotate to bit 1
+	mov b,a		; save in reg B
+
+	sub a			; 4c clear a, write into WR0: select RR0
+	out SIO_CA		; 11c
+	in SIO_CA		; 11c read RRx
+	ani 001h			; 7c bit 0 is RX ready
+	ora b
+	pop b
+
+	RAR		; TBE bit to bit-4; RDA bit to carry
+	RNC		; Zero and carry status right if low
+	ANA	A	; Else check new shifted output bit
+	STC		; And set the carry
+	RET		; Return with status
+.endif
 ;
 ;--------------------------------
 ; Print 16-bit line number in decimal.
@@ -556,7 +589,7 @@ CVD1:	INX	D	; To save program space, do incr here
 	ADI	'0'	; Make result of divide an ASCII number
 	STAX	D	; Store new decimal character
 	MOV	A,E	; Get pointer byte
-	CPI	LOW LASTD	; See if at end of number
+	CPI	lsb(LASTD)	; See if at end of number
 	JC	CVD1	; If not past table, then continue.
 ;
 ; Suppress zeroes.
@@ -624,23 +657,8 @@ INCH:	CALL	POLCAT	; Check status for character input
 ;
 ; Status was TRUE: There is a char in one of the I/O ports.
 ;
-INA:	CALL	POLSNS	; Get terminal option currently running
-	DB	IN18-$	; 01H --> MITS 2SIO at Port-18
-	DB	IN3P-$	; 02H --> PT   3P+S at Port-0
-	DB	IN16-$	; 08H --> MITS 2SIO at Port-16
-;
-; Else, MITS single SIO board at Port-0
-;
-IN0:	IN	SIOD	; I/O port  1 = Single-SIO Data
+INA:	IN	UART0	; I/O port  1 = Single-SIO Data
 	JMP	ASCII	;
-;
-IN16:	IN	SIOD0	; I/O port 17 = 2SIO Data
-	JMP	ASCII	;
-;
-IN18:	IN	SIOD1	; I/O port 19 = 2SIO Data
-	JMP	ASCII	;
-;
-IN3P:	IN	PTSD	; I/O port  1 = 3P+S Data
 ;
 ASCII:	ANI	01111111B	; Strip off upper bit
 ;
@@ -687,63 +705,14 @@ OUTA:	LDA	PERIOD	; Terminal/Cassette echo switch
 	JNC	OUTD	; No terminal output wanted; so skip
 OUTB:	CALL	POLCAT	; Check if ready for output
 	JZ	OUTB	; Wait until ready
-	CALL	POLSNS	; Check sense-bits
-	DB	OUT18-$	; 01H --> MITS 2SIO at Port-18
-	DB	OUT3P-$	; 02H --> PT   3P+S at Port-0
-	DB	OUT16-$	; 08H --> MITS 2SIO at Port-16
-;
-; Else, MITS single SIO board at Port-0
-;
-OUT0:	POP	PSW	; Get character back
-	OUT	SIOD	; I/O port 1 = Single-SIO board Data
+	POP	PSW	; Get character back
+.if MACHINE = 1
+	OUT	UART0		; I/O port 1 = Single-SIO board Data
+.else
+	OUT	SIO_DA	; I/O port 1 = Single-SIO board Data
+.endif
 	RET		; Done
-;
-OUT16:	POP	PSW	; Get character back
-	OUT	SIOD0	; I/O port 17 = 2SIO board Data
-	RET		; Done
-;
-OUT18:	POP	PSW	; Get character back
-	OUT	SIOD1	; I/O port 19 = 2SIO board Data
-	RET		; Done
-;
-OUT3P:	POP	PSW	; Get character back
-	OUT	PTSD	; I/O port 1 = 3P+S board Data
-	RET		; Done
-;
-; Poll for SENSE switch data
-; Call to POLSNS must be followed by three bytes of data
-; specifying offset to routines to handle each board-type
-; A default routine for MITS SIO board at Port-0 follows table
-; Example:
-;	CALL	POLSNS	; Get terminal option currently running
-;	DB	INP18-$	; 01H --> MITS 2SIO at Port-18
-;	DB	INP3P-$	; 02H --> PT   3P+S at Port-0
-;	DB	INP16-$	; 08H --> MITS 2SIO at Port-16
-;	Default routine starts here
-; The routines and the DB defines must reside on same page
-;
-POLSNS:	XTHL		; Swap so have memory-pointer in HL
-	CALL	CHKSNS	; Do so tests can just return
-	MOV	A,M	; Get offset from memory
-	ADD	L	; And add to pointer
-	MOV	L,A	; Save offsetted address
-	XTHL		; Now back in stack
-	RET		; And return to proper routine
-;
-CHKSNS:	IN	SENSE	; Number of terminal option currently running
-	RRC		; Rotate A-reg right, putting Bit-0 in Carry
-	RC		; Done if Bit-0 set -> 2SIO board @ Port-16
-	INX	H	; Bump to next byte
-	RRC		; Rotate A-reg right, putting Bit-1 in Carry
-	RC		; Done if Bit-1 set  -> 3P+S board @ Port-0
-	INX	H	; Bump to next byte
-	RRC		; Rotate A-reg right, putting Bit-3 in Carry
-	RRC		;
-	RC		; Done if Bit-3 set -> 2SIO board @ Port-18
-	INX	H	; Bump to next byte
-	POP	PSW	; Bits 0,1,3 not set -> SIO board @ Port-0
-	XTHL		; Throw away return, and back into stack
-	RET		; Default: Don't need offset
+
 ;
 ;--------------------------------
 ; Evaluate expressions
@@ -1098,7 +1067,7 @@ INLN6:	CPI	'@'	; Discard line inputted?
 ;
 	INX	H	; Increment line pointer
 	MOV	A,L	; Get its low byte
-	CPI	LOW (LINBUF+73)   ; Are we at the end of the line?
+	CPI	lsb(LINBUF+73)   ; Are we at the end of the line?
 	JNZ	INLN2	; No: Get next char
 ;
 ; Yes: Start a new line on the terminal.
@@ -1114,7 +1083,7 @@ INLN:	LXI	H,LINBUF+1	; Point to first char in line buffer
 ;
 INLN5:	DCX	H	; Point before the first char
 	MOV	A,L	;
-	CPI	LOW (LINBUF-1)	; Is it the beginning of the line?
+	CPI	lsb(LINBUF-1)	; Is it the beginning of the line?
 	JZ	NEWLIN	; Yes: Start a new line
 ;
 ; Not at end of line: Get another char, and check it.
