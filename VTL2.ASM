@@ -657,7 +657,11 @@ INCH:	CALL	POLCAT	; Check status for character input
 ;
 ; Status was TRUE: There is a char in one of the I/O ports.
 ;
+.if MACHINE = 1
 INA:	IN	UART0	; I/O port  1 = Single-SIO Data
+.else if MACHINE = 2
+INA:	IN	SIO_DA	; I/O port  1 = Single-SIO Data
+.endif
 	JMP	ASCII	;
 ;
 ASCII:	ANI	01111111B	; Strip off upper bit
@@ -1067,7 +1071,7 @@ INLN6:	CPI	'@'	; Discard line inputted?
 ;
 	INX	H	; Increment line pointer
 	MOV	A,L	; Get its low byte
-	CPI	lsb(LINBUF+73)   ; Are we at the end of the line?
+	CPI	lsb(LINBUF+72)   ; Are we at the end of the line?
 	JNZ	INLN2	; No: Get next char
 ;
 ; Yes: Start a new line on the terminal.

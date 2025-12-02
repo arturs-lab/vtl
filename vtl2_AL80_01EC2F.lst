@@ -650,7 +650,11 @@ F9EB   C3 0B FA               JMP   OUTCAS   ; Don't echo to Cassete from Casset
 F9EE                             ; 
 F9EE                             ; Status was TRUE: There is a char in one of the I/O ports.
 F9EE                             ; 
+F9EE                          IF   MACHINE = 1   
 F9EE   DB 08        INA:      IN   UART0   ; I/O port  1 = Single-SIO Data
+F9F0                          ELSE   if MACHINE = 2   
+                    INA:      IN   SIO_DA   ; I/O port  1 = Single-SIO Data
+F9F0                          ENDIF      
 F9F0   C3 F3 F9               JMP   ASCII   ; 
 F9F3                             ; 
 F9F3   E6 7F        ASCII:    ANI   01111111B   ; Strip off upper bit
@@ -1059,7 +1063,7 @@ FB4E                             ; No: We are in a line. Are we at the end?
 FB4E                             ; 
 FB4E   23                     INX   H   ; Increment line pointer
 FB4F   7D                     MOV   A,L   ; Get its low byte
-FB50   FE 0D                  CPI   lsb(LINBUF+73)   ; Are we at the end of the line?
+FB50   FE 0C                  CPI   lsb(LINBUF+72)   ; Are we at the end of the line?
 FB52   C2 62 FB               JNZ   INLN2   ; No: Get next char
 FB55                             ; 
 FB55                             ; Yes: Start a new line on the terminal.
@@ -1143,10 +1147,10 @@ FBA0                          END
 MACHINE:            0001 DEFINED AT LINE 1
 CASSTS:             0006 DEFINED AT LINE 12
                     > USED AT LINE 651
-                    > USED AT LINE 685
+                    > USED AT LINE 689
 CASSTD:             0007 DEFINED AT LINE 13
                     > USED AT LINE 654
-                    > USED AT LINE 691
+                    > USED AT LINE 695
 UART_BASE:          0008 DEFINED AT LINE 15
                     > USED AT LINE 16
                     > USED AT LINE 17
@@ -1157,8 +1161,8 @@ UART_BASE:          0008 DEFINED AT LINE 15
                     > USED AT LINE 22
                     > USED AT LINE 23
 UART0:              0008 DEFINED AT LINE 16
-                    > USED AT LINE 660
-                    > USED AT LINE 710
+                    > USED AT LINE 661
+                    > USED AT LINE 714
 UART1:              0009 DEFINED AT LINE 17
 UART2:              000A DEFINED AT LINE 18
 UART3:              000B DEFINED AT LINE 19
@@ -1182,12 +1186,12 @@ INTCI:              0011 DEFINED AT LINE 77
 CTRLC:              0003 DEFINED AT LINE 82
                     > USED AT LINE 626
 LF:                 000A DEFINED AT LINE 83
-                    > USED AT LINE 1124
-                    > USED AT LINE 1144
+                    > USED AT LINE 1128
+                    > USED AT LINE 1148
 CR:                 000D DEFINED AT LINE 84
-                    > USED AT LINE 1099
-                    > USED AT LINE 1122
-                    > USED AT LINE 1144
+                    > USED AT LINE 1103
+                    > USED AT LINE 1126
+                    > USED AT LINE 1148
 BRKPNT:             0000 DEFINED AT LINE 92
                     > USED AT LINE 398
 RST0:               0000 DEFINED AT LINE 93
@@ -1199,7 +1203,7 @@ RST5:               0028 DEFINED AT LINE 98
 RST6:               0030 DEFINED AT LINE 99
 RST7:               0038 DEFINED AT LINE 100
 AT:                 0040 DEFINED AT LINE 101
-                    > USED AT LINE 990
+                    > USED AT LINE 994
 VARS:               0042 DEFINED AT LINE 102
 BRAK:               0076 DEFINED AT LINE 103
 SLISH:              0078 DEFINED AT LINE 104
@@ -1225,14 +1229,14 @@ NUMBR:              0086 DEFINED AT LINE 111
                     > USED AT LINE 488
 DOLLAR:             0088 DEFINED AT LINE 112
 PERCNT:             008A DEFINED AT LINE 113
-                    > USED AT LINE 821
+                    > USED AT LINE 825
 AMPERS:             008C DEFINED AT LINE 114
                     > USED AT LINE 232
                     > USED AT LINE 286
                     > USED AT LINE 330
                     > USED AT LINE 442
                     > USED AT LINE 473
-                    > USED AT LINE 966
+                    > USED AT LINE 970
 QUITE:              008E DEFINED AT LINE 115
                     > USED AT LINE 408
                     > USED AT LINE 410
@@ -1243,26 +1247,26 @@ STAR:               0094 DEFINED AT LINE 118
 PLUS:               0096 DEFINED AT LINE 119
 COMMA:              0098 DEFINED AT LINE 120
                     > USED AT LINE 169
-                    > USED AT LINE 1133
+                    > USED AT LINE 1137
 MINUS:              009A DEFINED AT LINE 121
 PERIOD:             009C DEFINED AT LINE 122
                     > USED AT LINE 167
                     > USED AT LINE 639
-                    > USED AT LINE 673
-                    > USED AT LINE 696
+                    > USED AT LINE 677
+                    > USED AT LINE 700
 SLASH:              009E DEFINED AT LINE 123
 EVALPT:             00A0 DEFINED AT LINE 125
-                    > USED AT LINE 741
-                    > USED AT LINE 758
+                    > USED AT LINE 745
+                    > USED AT LINE 762
 SV1:                00A2 DEFINED AT LINE 126
 SV2:                00A4 DEFINED AT LINE 127
 SV3:                00A6 DEFINED AT LINE 128
 SV4:                00A8 DEFINED AT LINE 129
 SV5:                00AA DEFINED AT LINE 130
 RESULT:             00AC DEFINED AT LINE 131
-                    > USED AT LINE 957
-                    > USED AT LINE 965
-                    > USED AT LINE 988
+                    > USED AT LINE 961
+                    > USED AT LINE 969
+                    > USED AT LINE 992
 LINUMB:             00AE DEFINED AT LINE 132
                     > USED AT LINE 261
                     > USED AT LINE 371
@@ -1271,8 +1275,8 @@ CURENT:             00B0 DEFINED AT LINE 133
                     > USED AT LINE 445
                     > USED AT LINE 494
 VALVAR:             00B2 DEFINED AT LINE 134
-                    > USED AT LINE 924
                     > USED AT LINE 928
+                    > USED AT LINE 932
 COLN:               00B4 DEFINED AT LINE 136
 SEMI:               00B6 DEFINED AT LINE 137
 LESS:               00B8 DEFINED AT LINE 138
@@ -1285,8 +1289,8 @@ LASTD:              00C2 DEFINED AT LINE 143
 DELIM:              00C3 DEFINED AT LINE 144
                     > USED AT LINE 193
 LINBUF:             00C4 DEFINED AT LINE 145
-                    > USED AT LINE 1079
-                    > USED AT LINE 1106
+                    > USED AT LINE 1083
+                    > USED AT LINE 1110
 STACK:              0140 DEFINED AT LINE 153
                     > USED AT LINE 191
 PRGM:               0140 DEFINED AT LINE 154
@@ -1330,7 +1334,7 @@ NXTXT:              F8AE DEFINED AT LINE 315
 LOOKAG:             F8B2 DEFINED AT LINE 317
                     > USED AT LINE 320
 OUTH:               F8B8 DEFINED AT LINE 324
-                    > USED AT LINE 737
+                    > USED AT LINE 741
 FIND:               F8BA DEFINED AT LINE 330
                     > USED AT LINE 208
                     > USED AT LINE 423
@@ -1367,7 +1371,7 @@ MOVL:               F977 DEFINED AT LINE 496
 POLCAT:             F982 DEFINED AT LINE 530
                     > USED AT LINE 623
                     > USED AT LINE 633
-                    > USED AT LINE 706
+                    > USED AT LINE 710
 PRNT2:              F98B DEFINED AT LINE 570
                     > USED AT LINE 301
                     > USED AT LINE 384
@@ -1378,7 +1382,7 @@ ZRSUP:              F9B2 DEFINED AT LINE 601
 PNTMSG:             F9B9 DEFINED AT LINE 608
                     > USED AT LINE 305
 STRMSG:             F9BA DEFINED AT LINE 613
-                    > USED AT LINE 1115
+                    > USED AT LINE 1119
 OUTMSG:             F9BB DEFINED AT LINE 614
                     > USED AT LINE 619
 CONTC:              F9C7 DEFINED AT LINE 623
@@ -1387,116 +1391,116 @@ INCH:               F9D3 DEFINED AT LINE 633
                     > USED AT LINE 625
                     > USED AT LINE 647
                     > USED AT LINE 653
-                    > USED AT LINE 939
-                    > USED AT LINE 1091
-INA:                F9EE DEFINED AT LINE 660
-                    > USED AT LINE 634
-ASCII:              F9F3 DEFINED AT LINE 663
-                    > USED AT LINE 618
-                    > USED AT LINE 661
-OUTCH:              F9F5 DEFINED AT LINE 672
-                    > USED AT LINE 379
-                    > USED AT LINE 1123
-                    > USED AT LINE 1125
-                    > USED AT LINE 1138
-OUTC:               F9FE DEFINED AT LINE 685
-                    > USED AT LINE 689
-OUTCAS:             FA0B DEFINED AT LINE 692
-                    > USED AT LINE 656
-OUTA:               FA0C DEFINED AT LINE 696
-                    > USED AT LINE 681
-                    > USED AT LINE 687
-OUTB:               FA13 DEFINED AT LINE 706
-                    > USED AT LINE 707
-EVAL:               FA1D DEFINED AT LINE 727
-                    > USED AT LINE 368
-                    > USED AT LINE 927
-                    > USED AT LINE 948
-                    > USED AT LINE 963
-NXTRM:              FA20 DEFINED AT LINE 733
-                    > USED AT LINE 742
-TERM:               FA33 DEFINED AT LINE 752
-                    > USED AT LINE 738
-EVAL2:              FA46 DEFINED AT LINE 775
-                    > USED AT LINE 765
-HSUBB:              FA4B DEFINED AT LINE 780
-                    > USED AT LINE 851
-EVAL3:              FA52 DEFINED AT LINE 791
-                    > USED AT LINE 776
-MULT1:              FA5D DEFINED AT LINE 799
-                    > USED AT LINE 809
-MULT2:              FA66 DEFINED AT LINE 807
-                    > USED AT LINE 804
-EVAL4:              FA6C DEFINED AT LINE 816
-                    > USED AT LINE 792
-DIV:                FA7A DEFINED AT LINE 839
-                    > USED AT LINE 582
-                    > USED AT LINE 820
-DIV1:               FA81 DEFINED AT LINE 843
-                    > USED AT LINE 858
-DIV2:               FA8B DEFINED AT LINE 851
-                    > USED AT LINE 849
-DIV3:               FA94 DEFINED AT LINE 856
-                    > USED AT LINE 853
-EVAL5:              FA99 DEFINED AT LINE 863
-                    > USED AT LINE 817
-EVIL5:              FA9D DEFINED AT LINE 869
-EVIL6:              FAAA DEFINED AT LINE 884
-                    > USED AT LINE 870
-EVIL7:              FAB5 DEFINED AT LINE 900
-                    > USED AT LINE 885
-GETVAL:             FABC DEFINED AT LINE 914
-                    > USED AT LINE 727
-                    > USED AT LINE 756
-VAR:                FAD3 DEFINED AT LINE 936
-                    > USED AT LINE 920
-VAR1:               FADF DEFINED AT LINE 947
-                    > USED AT LINE 937
-VAR2:               FAE5 DEFINED AT LINE 952
-                    > USED AT LINE 262
-ARRAY:              FAEF DEFINED AT LINE 963
-                    > USED AT LINE 980
-CONVP:              FAFC DEFINED AT LINE 976
-                    > USED AT LINE 372
-                    > USED AT LINE 952
-OUTD:               FB0F DEFINED AT LINE 997
-                    > USED AT LINE 705
-PWRS10:             FB11 DEFINED AT LINE 1003
-                    > USED AT LINE 571
-TSTN:               FB1B DEFINED AT LINE 1012
-                    > USED AT LINE 1028
-                    > USED AT LINE 1042
-CVTLN:              FB23 DEFINED AT LINE 1022
-                    > USED AT LINE 203
-CVBIN:              FB26 DEFINED AT LINE 1028
-                    > USED AT LINE 914
-CBLOOP:             FB2D DEFINED AT LINE 1034
-                    > USED AT LINE 1058
-INLN6:              FB49 DEFINED AT LINE 1063
-                    > USED AT LINE 1102
-NEWLIN:             FB55 DEFINED AT LINE 1075
-                    > USED AT LINE 1064
-                    > USED AT LINE 1087
-INLN:               FB58 DEFINED AT LINE 1079
-                    > USED AT LINE 925
-                    > USED AT LINE 1022
-INLN5:              FB5B DEFINED AT LINE 1084
+                    > USED AT LINE 943
                     > USED AT LINE 1095
-INLN2:              FB62 DEFINED AT LINE 1091
-                    > USED AT LINE 1071
-                    > USED AT LINE 1100
-INLN3:              FB6B DEFINED AT LINE 1099
-INLN4:              FB73 DEFINED AT LINE 1104
-QUOTE2:             FB7B DEFINED AT LINE 1111
-                    > USED AT LINE 366
-STRNG:              FB7C DEFINED AT LINE 1115
-                    > USED AT LINE 195
-CRLF:               FB83 DEFINED AT LINE 1122
-                    > USED AT LINE 307
+INA:                F9EE DEFINED AT LINE 661
+                    > USED AT LINE 634
+ASCII:              F9F3 DEFINED AT LINE 667
+                    > USED AT LINE 618
+                    > USED AT LINE 665
+OUTCH:              F9F5 DEFINED AT LINE 676
+                    > USED AT LINE 379
+                    > USED AT LINE 1127
+                    > USED AT LINE 1129
+                    > USED AT LINE 1142
+OUTC:               F9FE DEFINED AT LINE 689
+                    > USED AT LINE 693
+OUTCAS:             FA0B DEFINED AT LINE 696
+                    > USED AT LINE 656
+OUTA:               FA0C DEFINED AT LINE 700
+                    > USED AT LINE 685
+                    > USED AT LINE 691
+OUTB:               FA13 DEFINED AT LINE 710
+                    > USED AT LINE 711
+EVAL:               FA1D DEFINED AT LINE 731
+                    > USED AT LINE 368
+                    > USED AT LINE 931
+                    > USED AT LINE 952
+                    > USED AT LINE 967
+NXTRM:              FA20 DEFINED AT LINE 737
+                    > USED AT LINE 746
+TERM:               FA33 DEFINED AT LINE 756
+                    > USED AT LINE 742
+EVAL2:              FA46 DEFINED AT LINE 779
+                    > USED AT LINE 769
+HSUBB:              FA4B DEFINED AT LINE 784
+                    > USED AT LINE 855
+EVAL3:              FA52 DEFINED AT LINE 795
+                    > USED AT LINE 780
+MULT1:              FA5D DEFINED AT LINE 803
+                    > USED AT LINE 813
+MULT2:              FA66 DEFINED AT LINE 811
+                    > USED AT LINE 808
+EVAL4:              FA6C DEFINED AT LINE 820
+                    > USED AT LINE 796
+DIV:                FA7A DEFINED AT LINE 843
+                    > USED AT LINE 582
+                    > USED AT LINE 824
+DIV1:               FA81 DEFINED AT LINE 847
+                    > USED AT LINE 862
+DIV2:               FA8B DEFINED AT LINE 855
+                    > USED AT LINE 853
+DIV3:               FA94 DEFINED AT LINE 860
+                    > USED AT LINE 857
+EVAL5:              FA99 DEFINED AT LINE 867
+                    > USED AT LINE 821
+EVIL5:              FA9D DEFINED AT LINE 873
+EVIL6:              FAAA DEFINED AT LINE 888
+                    > USED AT LINE 874
+EVIL7:              FAB5 DEFINED AT LINE 904
+                    > USED AT LINE 889
+GETVAL:             FABC DEFINED AT LINE 918
+                    > USED AT LINE 731
+                    > USED AT LINE 760
+VAR:                FAD3 DEFINED AT LINE 940
+                    > USED AT LINE 924
+VAR1:               FADF DEFINED AT LINE 951
+                    > USED AT LINE 941
+VAR2:               FAE5 DEFINED AT LINE 956
+                    > USED AT LINE 262
+ARRAY:              FAEF DEFINED AT LINE 967
+                    > USED AT LINE 984
+CONVP:              FAFC DEFINED AT LINE 980
+                    > USED AT LINE 372
+                    > USED AT LINE 956
+OUTD:               FB0F DEFINED AT LINE 1001
+                    > USED AT LINE 709
+PWRS10:             FB11 DEFINED AT LINE 1007
+                    > USED AT LINE 571
+TSTN:               FB1B DEFINED AT LINE 1016
+                    > USED AT LINE 1032
+                    > USED AT LINE 1046
+CVTLN:              FB23 DEFINED AT LINE 1026
+                    > USED AT LINE 203
+CVBIN:              FB26 DEFINED AT LINE 1032
+                    > USED AT LINE 918
+CBLOOP:             FB2D DEFINED AT LINE 1038
+                    > USED AT LINE 1062
+INLN6:              FB49 DEFINED AT LINE 1067
+                    > USED AT LINE 1106
+NEWLIN:             FB55 DEFINED AT LINE 1079
+                    > USED AT LINE 1068
+                    > USED AT LINE 1091
+INLN:               FB58 DEFINED AT LINE 1083
+                    > USED AT LINE 929
+                    > USED AT LINE 1026
+INLN5:              FB5B DEFINED AT LINE 1088
+                    > USED AT LINE 1099
+INLN2:              FB62 DEFINED AT LINE 1095
                     > USED AT LINE 1075
-PRLF:               FB88 DEFINED AT LINE 1124
-                    > USED AT LINE 1107
-NULL:               FB90 DEFINED AT LINE 1134
-                    > USED AT LINE 1140
-OKM:                FB9B DEFINED AT LINE 1144
+                    > USED AT LINE 1104
+INLN3:              FB6B DEFINED AT LINE 1103
+INLN4:              FB73 DEFINED AT LINE 1108
+QUOTE2:             FB7B DEFINED AT LINE 1115
+                    > USED AT LINE 366
+STRNG:              FB7C DEFINED AT LINE 1119
+                    > USED AT LINE 195
+CRLF:               FB83 DEFINED AT LINE 1126
+                    > USED AT LINE 307
+                    > USED AT LINE 1079
+PRLF:               FB88 DEFINED AT LINE 1128
+                    > USED AT LINE 1111
+NULL:               FB90 DEFINED AT LINE 1138
+                    > USED AT LINE 1144
+OKM:                FB9B DEFINED AT LINE 1148
                     > USED AT LINE 194
