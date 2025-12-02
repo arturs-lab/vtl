@@ -1,6 +1,8 @@
 MACHINE:	EQU	1	; "AL80"
 ;MACHINE:	EQU	2	; "MintZ80"
 
+OFFSET	EQU	2400h	; offset of memory start for the program. Originally 0
+
 ; VTL2.ASM
 ; ------------
 ;
@@ -88,7 +90,7 @@ CR	EQU	0DH	; Carriage-Return
 ;-------------------------------- (SV = System Variable)
 ;-------------------------------- (GV = Usable Variable)
 ;
-	ORG	0000H	; Bottom of memory
+	ORG	0000H+OFFSET	; Bottom of memory
 BRKPNT	DS	0	; Address of RST 0
 RST0:		DS	8	; Restarts
 RST1:		DS	8	;
@@ -148,7 +150,7 @@ LINBUF:	DS	72	; Line buffer (TTY = 72 Characters)
 ;	User program
 ;--------------------------------
 ;
-	ORG	0140H	; = 320 in decimal
+	ORG	0140H+OFFSET	; = 320 in decimal
 ;
 stack	EQU	$	; Stack goes from here down to line-buffer
 prgm	EQU	$	; Programming space: here to end of memory
