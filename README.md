@@ -15,3 +15,10 @@ VTL expects all capital letters.
 &=320
 ?=*-&
 ```
+
+# Refactored to run using RAM starting at $2400. Still loads at $f800
+```
+*=40960
+&=9536
+?=*-&
+```

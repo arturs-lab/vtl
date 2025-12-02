@@ -1,5 +1,6 @@
 0000                MACHINE:   EQU   1   ; "AL80"
 0000                             ;MACHINE:	EQU	2	; "MintZ80"
+0000                OFFSET:   EQU   2400h   ; offset of memory start for the program. Originally 0
 0000                             ; VTL2.ASM
 0000                             ; ------------
 0000                             ; 
@@ -83,75 +84,75 @@
 0000                             ;-------------------------------- (SV = System Variable)
 0000                             ;-------------------------------- (GV = Usable Variable)
 0000                             ; 
-0000                          .ORG   0000H   ; Bottom of memory
-0000                BRKPNT:   DS   0   ; Address of RST 0
-0000                RST0:     DS   8   ; Restarts
-0008                RST1:     DS   8   ; 
-0010                RST2:     DS   8   ; 
-0018                RST3:     DS   8   ; 
-0020                RST4:     DS   8   ; 
-0028                RST5:     DS   8   ; 
-0030                RST6:     DS   8   ; 
-0038                RST7:     DS   8   ; 
-0040                AT:       DS   2   ; SV: Usable storage since "@" not allowed
-0042                VARS:     DS   52   ; Variables A - Z (26 variables)
-0076                BRAK:     DS   2   ; [
-0078                SLISH:    DS   2   ; \
-007A                BRIK:     DS   2   ; ]
-007C                UP:       DS   2   ; ^ SV: Number of terminal option running
-007E                LINPTR:   DS   2   ; _ SV: Current line-pointer save
-0080                SPAC:     DS   2   ;   GV: Space
-0082                EXCLAM:   DS   2   ;   SV: RETURN pointer (Excalmation-Point)
-0084                QUOTE:    DS   2   ; "
-0086                NUMBR:    DS   2   ; # SV: Line-Number
-0088                DOLLAR:   DS   2   ; $ SV: Character pointer
-008A                PERCNT:   DS   2   ; % SV: Remainder after divide
-008C                AMPERS:   DS   2   ; & SV: Next byte past user program - Array start
-008E                QUITE:    DS   2   ; ' SV: Random Number
-0090                PAREN:    DS   2   ; ( SV: Not used
-0092                PARIN:    DS   2   ; ) SV: Not used
-0094                STAR:     DS   2   ; * SV: Next byte past user program (Array area)
-0096                PLUS:     DS   2   ; + GV: General Purpose variable
-0098                COMMA:    DS   2   ; , SV: Number of nulls after each cr/lf
-009A                MINUS:    DS   2   ; - GV: General Purpose variable
-009C                PERIOD:   DS   2   ; . SV: Terminal echo switch
-009E                SLASH:    DS   2   ;   SV: General Purpose variable
-00A0                             ; 
-00A0                EVALPT:   DS   2   ; 0 Eval pointer
-00A2                SV1:      DS   2   ; 1 SV: Not used
-00A4                SV2:      DS   2   ; 2 SV: Not used
-00A6                SV3:      DS   2   ; 3 SV: Not used
-00A8                SV4:      DS   2   ; 4 SV: Not used
-00AA                SV5:      DS   2   ; 5 SV: Not used
-00AC                RESULT:   DS   2   ; 6 SV: Result of expression evaluation
-00AE                LINUMB:   DS   2   ; 7 SV: Line number
-00B0                CURENT:   DS   2   ; 8 SV: Current line number
-00B2                VALVAR:   DS   2   ; 9 SV: Value of variable?
-00B4                             ; 
-00B4                COLN:     DS   2   ; : GV: General purpose variable
-00B6                SEMI:     DS   2   ; ; GV: General Purpose variable
-00B8                LESS:     DS   2   ; < GV: General Purpose variable
-00BA                EQAL:     DS   2   ; = GV: General Purpose variable
-00BC                GRAT:     DS   2   ; > SV: Return-value from Machine-language
-00BE                             ; 
-00BE                DECBUF:   DS   4   ; Decimal buffer ("54321")
-00C2                LASTD:    DS   1   ; Last byte in decimal-buffer
-00C3                DELIM:    DS   1   ; Delimiter space for buffer-end
-00C4                LINBUF:   DS   72   ; Line buffer (TTY = 72 Characters)
-010C                             ; 
-010C                             ;--------------------------------
-010C                             ;	User program
-010C                             ;--------------------------------
-010C                             ; 
-0140                          .ORG   0140H   ; = 320 in decimal
-0140                             ; 
-0140                STACK:    EQU   $   ; Stack goes from here down to line-buffer
-0140                PRGM:     EQU   $   ; Programming space: here to end of memory
-0140                             ; 
-0140                             ;--------------------------------
-0140                             ;       Main operating system
-0140                             ;--------------------------------
-0140                             ; 
+2400                          .ORG   0000H+OFFSET   ; Bottom of memory
+2400                BRKPNT:   DS   0   ; Address of RST 0
+2400                RST0:     DS   8   ; Restarts
+2408                RST1:     DS   8   ; 
+2410                RST2:     DS   8   ; 
+2418                RST3:     DS   8   ; 
+2420                RST4:     DS   8   ; 
+2428                RST5:     DS   8   ; 
+2430                RST6:     DS   8   ; 
+2438                RST7:     DS   8   ; 
+2440                AT:       DS   2   ; SV: Usable storage since "@" not allowed
+2442                VARS:     DS   52   ; Variables A - Z (26 variables)
+2476                BRAK:     DS   2   ; [
+2478                SLISH:    DS   2   ; \
+247A                BRIK:     DS   2   ; ]
+247C                UP:       DS   2   ; ^ SV: Number of terminal option running
+247E                LINPTR:   DS   2   ; _ SV: Current line-pointer save
+2480                SPAC:     DS   2   ;   GV: Space
+2482                EXCLAM:   DS   2   ;   SV: RETURN pointer (Excalmation-Point)
+2484                QUOTE:    DS   2   ; "
+2486                NUMBR:    DS   2   ; # SV: Line-Number
+2488                DOLLAR:   DS   2   ; $ SV: Character pointer
+248A                PERCNT:   DS   2   ; % SV: Remainder after divide
+248C                AMPERS:   DS   2   ; & SV: Next byte past user program - Array start
+248E                QUITE:    DS   2   ; ' SV: Random Number
+2490                PAREN:    DS   2   ; ( SV: Not used
+2492                PARIN:    DS   2   ; ) SV: Not used
+2494                STAR:     DS   2   ; * SV: Next byte past user program (Array area)
+2496                PLUS:     DS   2   ; + GV: General Purpose variable
+2498                COMMA:    DS   2   ; , SV: Number of nulls after each cr/lf
+249A                MINUS:    DS   2   ; - GV: General Purpose variable
+249C                PERIOD:   DS   2   ; . SV: Terminal echo switch
+249E                SLASH:    DS   2   ;   SV: General Purpose variable
+24A0                             ; 
+24A0                EVALPT:   DS   2   ; 0 Eval pointer
+24A2                SV1:      DS   2   ; 1 SV: Not used
+24A4                SV2:      DS   2   ; 2 SV: Not used
+24A6                SV3:      DS   2   ; 3 SV: Not used
+24A8                SV4:      DS   2   ; 4 SV: Not used
+24AA                SV5:      DS   2   ; 5 SV: Not used
+24AC                RESULT:   DS   2   ; 6 SV: Result of expression evaluation
+24AE                LINUMB:   DS   2   ; 7 SV: Line number
+24B0                CURENT:   DS   2   ; 8 SV: Current line number
+24B2                VALVAR:   DS   2   ; 9 SV: Value of variable?
+24B4                             ; 
+24B4                COLN:     DS   2   ; : GV: General purpose variable
+24B6                SEMI:     DS   2   ; ; GV: General Purpose variable
+24B8                LESS:     DS   2   ; < GV: General Purpose variable
+24BA                EQAL:     DS   2   ; = GV: General Purpose variable
+24BC                GRAT:     DS   2   ; > SV: Return-value from Machine-language
+24BE                             ; 
+24BE                DECBUF:   DS   4   ; Decimal buffer ("54321")
+24C2                LASTD:    DS   1   ; Last byte in decimal-buffer
+24C3                DELIM:    DS   1   ; Delimiter space for buffer-end
+24C4                LINBUF:   DS   72   ; Line buffer (TTY = 72 Characters)
+250C                             ; 
+250C                             ;--------------------------------
+250C                             ;	User program
+250C                             ;--------------------------------
+250C                             ; 
+2540                          .ORG   0140H+OFFSET   ; = 320 in decimal
+2540                             ; 
+2540                STACK:    EQU   $   ; Stack goes from here down to line-buffer
+2540                PRGM:     EQU   $   ; Programming space: here to end of memory
+2540                             ; 
+2540                             ;--------------------------------
+2540                             ;       Main operating system
+2540                             ;--------------------------------
+2540                             ; 
 F800                          .ORG   0F800H   ; Probably a ROM
 F800                             ; 
 F800                             ; Cold-Start ("Boot").
@@ -159,9 +160,9 @@ F800                             ;
 F800   3E 01        RSTRT:    MVI   a,01   
 F802   D3 F8                  OUT   0f8h   
 F804   21 01 00               LXI   H,CLEAR   ; = 3 to clear various things
-F807   22 9C 00               SHLD   PERIOD   ; To see the program as it comes in
+F807   22 9C 24               SHLD   PERIOD   ; To see the program as it comes in
 F80A   21 00 00               LXI   H,0   ; no null after CRLF
-F80D   22 98 00               SHLD   COMMA   ; Number of nulls after each cr/lf
+F80D   22 98 24               SHLD   COMMA   ; Number of nulls after each cr/lf
 F810                             ; 
 F810                             ; By default, VTL-2 expects that the MITS Altair 8800 system
 F810                             ; it is running on has a terminal via one 2SIO board, either
@@ -183,9 +184,9 @@ F810                             ; Warm-Start (Ctrl-C).
 F810                             ; 
 F810                             ; On Entry, register contents don't matter.
 F810                             ; 
-F810   31 40 01     START:    LXI   SP,STACK   ; Set up stack (before user program)
+F810   31 40 25     START:    LXI   SP,STACK   ; Set up stack (before user program)
 F813   AF                     XRA   A   ; Initialize delimiter
-F814   32 C3 00               STA   DELIM   ; Save delimiter for decimal-printing
+F814   32 C3 24               STA   DELIM   ; Save delimiter for decimal-printing
 F817   21 9B FB               LXI   H,OKM   ; Point to "OK" prompt
 F81A   CD 7C FB               CALL   STRNG   ; Display it on terminal
 F81D                             ; 
@@ -194,7 +195,7 @@ F81D                             ;
 F81D                             ; BC: ?, DE: ?, HL: ?
 F81D                             ; 
 F81D   21 00 00     LOOP:     LXI   H,0000H   ; Clear line-number for fall-through
-F820   22 86 00               SHLD   NUMBR   ; If no change during this line, then next
+F820   22 86 24               SHLD   NUMBR   ; If no change during this line, then next
 F823   CD 23 FB               CALL   CVTLN   ; Was a line number inputted?
 F826   D2 80 F8               JNC   STMNT   ; 0: List (display) user program statements
 F829   CD 6F F8               CALL   EXEC   ; If no line, then execute direct statement
@@ -207,8 +208,8 @@ F832                             ;
 F832   D2 10 F8     EQSTRT:   JNC   START   ; If end, then stop
 F835                             ; 
 F835   CD 65 F8               CALL   LXHN   ; Get real line number
-F838   22 86 00               SHLD   NUMBR   ; And save it for program
-F83B   2A 7E 00               LHLD   LINPTR   ; Get crrent spot in line
+F838   22 86 24               SHLD   NUMBR   ; And save it for program
+F83B   2A 7E 24               LHLD   LINPTR   ; Get crrent spot in line
 F83E   23                     INX   H   ; Bump past 0-byte delimiter
 F83F   23                     INX   H   ; Bump past line-number
 F840   23                     INX   H   ; 
@@ -216,15 +217,15 @@ F841   CD 6F F8               CALL   EXEC   ; Execute statement in line
 F844                             ; 
 F844   EB                     XCHG      ; 
 F845   CA 58 F8               JZ   LOOP3   ; If line-number == 0, then continue
-F848   2A 7E 00               LHLD   LINPTR   ; Else get new line
+F848   2A 7E 24               LHLD   LINPTR   ; Else get new line
 F84B   CD 65 F8               CALL   LXHN   ; and see if it's changed
 F84E   CA 58 F8               JZ   LOOP3   ; If unchanged, then continue
 F851   23                     INX   H   ; Else, increment old line-number
-F852   22 82 00               SHLD   EXCLAM   ; And save as RETURN value
+F852   22 82 24               SHLD   EXCLAM   ; And save as RETURN value
 F855   C3 2F F8               JMP   LOOP2   ; Then continue at new line
 F858                             ; 
 F858   E5           LOOP3:    PUSH   H   ; Save line number
-F859   2A 8C 00               LHLD   AMPERS   ; Next byte of user program
+F859   2A 8C 24               LHLD   AMPERS   ; Next byte of user program
 F85C   44                     MOV   B,H   ; 
 F85D   4D                     MOV   C,L   ; Copy it into BC
 F85E   E1                     POP   H   ; Restore line number
@@ -253,14 +254,14 @@ F86F                             ;
 F86F                             ;--------------------------------
 F86F                             ;	Execute direct statements.
 F86F                             ; 
-F86F   22 AE 00     EXEC:     SHLD   LINUMB   ; Save line position for store
+F86F   22 AE 24     EXEC:     SHLD   LINUMB   ; Save line position for store
 F872   CD E5 FA               CALL   VAR2   ; Skip past variable or array-element
 F875                             ; 
 F875   23                     INX   H   ; Get first term
 F876   7E           SKIP:     MOV   A,M   ; 
 F877   CD DF F8               CALL   EVIL   ; Evaluate expression
 F87A                             ; 
-F87A   2A 86 00     OUTX:     LHLD   NUMBR   ; Get char ptr
+F87A   2A 86 24     OUTX:     LHLD   NUMBR   ; Get char ptr
 F87D   7C                     MOV   A,H   ; 16-bits test if it is zero
 F87E   B5                     ORA   L   ; (Sets Zero flag)
 F87F   C9                     RET      ; 
@@ -270,17 +271,17 @@ F880                             ;	List (display) user program statements.
 F880                             ; 
 F880                             ; BC: ?, DE: ?, HL: ?
 F880                             ; 
-F880   22 B0 00     STMNT:    SHLD   CURENT   ; Save current line number
+F880   22 B0 24     STMNT:    SHLD   CURENT   ; Save current line number
 F883   69                     MOV   L,C   ; Copy BC (?) to HL
 F884   60                     MOV   H,B   ; 
-F885   22 86 00               SHLD   NUMBR   ; And save it in char ptr
+F885   22 86 24               SHLD   NUMBR   ; And save it in char ptr
 F888   78                     MOV   A,B   ; 16-bits test if BC is zero
 F889   B1                     ORA   C   ; 
 F88A   C2 11 F9               JNZ   SKP2   ; Skip if line-number <> 0
 F88D                             ; 
-F88D   2A 8C 00               LHLD   AMPERS   ; Point past end of program
+F88D   2A 8C 24               LHLD   AMPERS   ; Point past end of program
 F890   EB                     XCHG      ; Put it in DE
-F891   21 40 01               LXI   H,PRGM   ; point to start of user program
+F891   21 40 25               LXI   H,PRGM   ; point to start of user program
 F894                             ; 
 F894                             ; List (display) program on terminal.
 F894                             ; 
@@ -307,7 +308,7 @@ F8AE                             ;
 F8AE                             ;--------------------------------
 F8AE                             ; Next text?
 F8AE                             ; 
-F8AE   2A 7E 00     NXTXT:    LHLD   LINPTR   ; Line-pointer
+F8AE   2A 7E 24     NXTXT:    LHLD   LINPTR   ; Line-pointer
 F8B1   23                     INX   H   ; Point past Line-Number
 F8B2   23           LOOKAG:   INX   H   ; Find end of line
 F8B3   7E                     MOV   A,M   ; 
@@ -322,13 +323,13 @@ F8BA                             ;
 F8BA                             ;--------------------------------
 F8BA                             ; Find line-number
 F8BA                             ; 
-F8BA   2A 8C 00     FIND:     LHLD   AMPERS   ; Point at first byte of user program
+F8BA   2A 8C 24     FIND:     LHLD   AMPERS   ; Point at first byte of user program
 F8BD   4D                     MOV   C,L   ; 
 F8BE   44                     MOV   B,H   ; Copy it to BC
-F8BF   2A 86 00               LHLD   NUMBR   ; Char ptr
+F8BF   2A 86 24               LHLD   NUMBR   ; Char ptr
 F8C2   EB                     XCHG      ; Copy it to DE
-F8C3   21 40 01               LXI   H,PRGM   ; PC of user program
-F8C6   22 7E 00     FND2:     SHLD   LINPTR   ; Set it equal to line-pointer
+F8C3   21 40 25               LXI   H,PRGM   ; PC of user program
+F8C6   22 7E 24     FND2:     SHLD   LINPTR   ; Set it equal to line-pointer
 F8C9   7C                     MOV   A,H   ; Get and compare
 F8CA   B8                     CMP   B   ; High bytes
 F8CB   C2 D1 F8               JNZ   NXTUU   ; Non-zero if high-bytes don't match
@@ -363,7 +364,7 @@ F8E4                             ;
 F8E4   CD 1D FA               CALL   EVAL   ; No: Evaluate expression
 F8E7                             ; 
 F8E7   C5                     PUSH   B   ; 
-F8E8   2A AE 00               LHLD   LINUMB   ; ?
+F8E8   2A AE 24               LHLD   LINUMB   ; ?
 F8EB   CD FC FA               CALL   CONVP   ; Convert pointer to point to variable
 F8EE                             ; 
 F8EE   C1                     POP   B   ; Get back pointer to storage
@@ -390,7 +391,7 @@ F8FD                             ; All other registers other than the BC and reg
 F8FD                             ; returned unchanged!
 F8FD                             ; 
 F8FD   3C                     INR   A   ; Is it a ">" char?
-F8FE   CC 00 00               CZ   BRKPNT   ; Call RST 0 at 0000H
+F8FE   CC 00 24               CZ   BRKPNT   ; Call RST 0 at 0000H
 F901                             ; 
 F901                             ; "At the conclusion of the machine language subroutine,
 F901                             ; a Intel 8080 RET instruction returns control to VTL-2,
@@ -400,9 +401,9 @@ F901                             ;
 F901   71                     MOV   M,C   ; Copy BC to Variable Storage
 F902   23                     INX   H   ; 
 F903   70                     MOV   M,B   ; 
-F904   2A 8E 00               LHLD   QUITE   ; Get Random-number
+F904   2A 8E 24               LHLD   QUITE   ; Get Random-number
 F907   09                     DAD   B   ; Add current value to random number
-F908   22 8E 00               SHLD   QUITE   ; And save new random number
+F908   22 8E 24               SHLD   QUITE   ; And save new random number
 F90B                             ; 
 F90B                             ; Compare BC and DE and return with flags
 F90B                             ; 
@@ -423,7 +424,7 @@ F91A   C2 36 F9               JNZ   INSRT   ; If not, then Insert
 F91D   CD AE F8               CALL   NXTXT   ; Else bump past current line
 F920                             ; 
 F920   EB                     XCHG      ; 
-F921   2A 7E 00               LHLD   LINPTR   ; Line-pointer
+F921   2A 7E 24               LHLD   LINPTR   ; Line-pointer
 F924   CD 0B F9     DELT:     CALL   CPBD   ; Compare BC with DE
 F927   CA 31 F9               JZ   FITIT   ; Equal: If finished deleting, then continue
 F92A   1A                     LDAX   D   ; Move byte at M(DE)
@@ -434,10 +435,10 @@ F92E   C3 24 F9               JMP   DELT   ; Loop and continue removing line
 F931                             ; 
 F931                             ; Insert a program line in program "text".
 F931                             ; 
-F931   22 8C 00     FITIT:    SHLD   AMPERS   ; Save address of new end of user program
+F931   22 8C 24     FITIT:    SHLD   AMPERS   ; Save address of new end of user program
 F934   44                     MOV   B,H   ; Copy HL to BC
 F935   4D                     MOV   C,L   ; 
-F936   2A B0 00     INSRT:    LHLD   CURENT   ; Count new line-length
+F936   2A B0 24     INSRT:    LHLD   CURENT   ; Count new line-length
 F939   11 03 00               LXI   D,0003H   ; 3 = delimiter (0-byte) + line number
 F93C   7E                     MOV   A,M   ; Get byte
 F93D   A7                     ANA   A   ; Is it the end-of-line?
@@ -454,7 +455,7 @@ F948                             ;
 F948   EB           OPEN:     XCHG      ; 
 F949   09                     DAD   B   ; Add BC
 F94A   EB                     XCHG      ; Put result in DE
-F94B   21 94 00               LXI   H,STAR   ; Memory size
+F94B   21 94 24               LXI   H,STAR   ; Memory size
 F94E   7B                     MOV   A,E   ; Subtract memory size from program length?
 F94F   96                     SUB   M   ; 
 F950   23                     INX   H   ; 
@@ -465,11 +466,11 @@ F956                             ;
 F956                             ; Some available memory is present.
 F956                             ; 
 F956   EB                     XCHG      ; 
-F957   22 8C 00               SHLD   AMPERS   ; Then, this must be next byte of user PGM?
+F957   22 8C 24               SHLD   AMPERS   ; Then, this must be next byte of user PGM?
 F95A   03                     INX   B   ; 
 F95B   23                     INX   H   ; 
 F95C   E5                     PUSH   H   ; 
-F95D   2A 7E 00               LHLD   LINPTR   ; Line-pointer
+F95D   2A 7E 24               LHLD   LINPTR   ; Line-pointer
 F960   EB                     XCHG      ; 
 F961   E1                     POP   H   ; 
 F962                             ; 
@@ -480,13 +481,13 @@ F965   77                     MOV   M,A   ;
 F966   CD 0B F9               CALL   CPBD   ; Until space is made for new one
 F969   C2 62 F9               JNZ   SLIDE   ; Move program above new line up.
 F96C                             ; 
-F96C   2A 86 00     DON:      LHLD   NUMBR   ; Char ptr
+F96C   2A 86 24     DON:      LHLD   NUMBR   ; Char ptr
 F96F   7D                     MOV   A,L   ; Get M(HL)
 F970   02                     STAX   B   ; M(BC) = A
 F971   03                     INX   B   ; Increment BC
 F972   7C                     MOV   A,H   ; Get M(HL)
 F973   02                     STAX   B   ; M(BC) = A  Save new line-number in program
-F974   2A B0 00               LHLD   CURENT   ; Point at line-buffer
+F974   2A B0 24               LHLD   CURENT   ; Point at line-buffer
 F977                             ; 
 F977   03           MOVL:     INX   B   ; Move line from line-buffer to program
 F978   7E                     MOV   A,M   ; 
@@ -560,7 +561,7 @@ F98B                             ; On Entry, BC = Number to be printed
 F98B                             ; 
 F98B                             ; On exit, all registers are used and changed
 F98B                             ; 
-F98B   11 BD 00     PRNT2:    LXI   D,DECBUF-1   ; Decimal buffer (5 chars long)
+F98B   11 BD 24     PRNT2:    LXI   D,DECBUF-1   ; Decimal buffer (5 chars long)
 F98E   21 11 FB               LXI   H,PWRS10   ; Table of decimal values
 F991   13           CVD1:     INX   D   ; To save program space, do incr here
 F992   D5                     PUSH   D   ; Save address of next character-space
@@ -590,7 +591,7 @@ F9AB                             ;
 F9AB   1A                     LDAX   D   ; Get last digit
 F9AC   F6 80                  ORI   10000000B   ; Add high-bit so 0 gets printed
 F9AE   12                     STAX   D   ; Save last digit with high-bit set
-F9AF   21 BD 00               LXI   H,DECBUF-1   ; Point before decimal buffer
+F9AF   21 BD 24               LXI   H,DECBUF-1   ; Point before decimal buffer
 F9B2   23           ZRSUP:    INX   H   ; Point to next char
 F9B3   7E                     MOV   A,M   ; Get it
 F9B4   FE 30                  CPI   "0"   ; Is it an ASCII zero?
@@ -629,7 +630,7 @@ F9D9                             ;
 F9D9                             ; Status was FALSE: There is no char in one of the I/O
 F9D9                             ; ports, so let's check the Cassette tape player, instead.
 F9D9                             ; 
-F9D9   3A 9C 00               LDA   PERIOD   ; Terminal/Cassette echo switch
+F9D9   3A 9C 24               LDA   PERIOD   ; Terminal/Cassette echo switch
 F9DC   E6 02                  ANI   0010B   
 F9DE                             ;		 |||
 F9DE                             ;		 ||+--> 0 = Nothing displayed on terminal
@@ -667,7 +668,7 @@ F9F5                             ; ANY registers except the stack; returning to 
 F9F5                             ; routine with all registers unchanged.
 F9F5                             ; 
 F9F5   F5           OUTCH:    PUSH   PSW   ; Save char to check if cassette echo
-F9F6   3A 9C 00               LDA   PERIOD   ; Terminal/Cassette echo switch
+F9F6   3A 9C 24               LDA   PERIOD   ; Terminal/Cassette echo switch
 F9F9   E6 04                  ANI   0100B   
 F9FB                             ;		 |||
 F9FB                             ;		 ||+--> 0 = Nothing displayed on terminal
@@ -690,7 +691,7 @@ FA0B   F5           OUTCAS:   PUSH   PSW   ; And then save it again
 FA0C                             ; 
 FA0C                             ; Now, determine on which terminal to display the char.
 FA0C                             ; 
-FA0C   3A 9C 00     OUTA:     LDA   PERIOD   ; Terminal/Cassette echo switch
+FA0C   3A 9C 24     OUTA:     LDA   PERIOD   ; Terminal/Cassette echo switch
 FA0F   0F                     RRC      ; Test Terminal echo bit
 FA10                             ;               0001B
 FA10                             ;		 |||
@@ -734,7 +735,7 @@ FA25   CA B8 F8               JZ   OUTH   ; Yes: INC HL past paren and return
 FA28   CD 33 FA               CALL   TERM   ; No: Process term of expression
 FA2B   44                     MOV   B,H   ; Copy result of expression to BC
 FA2C   4D                     MOV   C,L   ; 
-FA2D   2A A0 00               LHLD   EVALPT   ; Load eval pointer
+FA2D   2A A0 24               LHLD   EVALPT   ; Load eval pointer
 FA30   C3 20 FA               JMP   NXTRM   ; and loop until end of terms found.
 FA33                             ; 
 FA33                             ;--------------------------------
@@ -751,7 +752,7 @@ FA35   F5                     PUSH   PSW   ; Save operator on stack
 FA36   23                     INX   H   ; Point to next value to be worked with
 FA37   CD BC FA               CALL   GETVAL   ; Get value of next number or variable
 FA3A                             ;			  New value returns in BC
-FA3A   22 A0 00               SHLD   EVALPT   ; Save save current position in line
+FA3A   22 A0 24               SHLD   EVALPT   ; Save save current position in line
 FA3D   F1                     POP   PSW   ; Restore operator for testing
 FA3E   E1                     POP   H   ; Place old value in HL
 FA3F                             ; 
@@ -814,7 +815,7 @@ FA6E   C2 99 FA               JNZ   EVAL5   ; No: Now, check relational operator
 FA71                             ; 
 FA71   EB                     XCHG      ; Swap current number into dividend
 FA72   CD 7A FA               CALL   DIV   ; Yes: Use division subroutine
-FA75   22 8A 00               SHLD   PERCNT   ; Save remainder of divide operation
+FA75   22 8A 24               SHLD   PERCNT   ; Save remainder of divide operation
 FA78   EB                     XCHG      ; 
 FA79   C9                     RET      ; Result in HL
 FA7A                             ; 
@@ -917,11 +918,11 @@ FAC3   C2 D3 FA               JNZ   VAR   ; No: Check if it is a variable name
 FAC6                             ; 
 FAC6                             ; Yes: ?
 FAC6                             ; 
-FAC6   22 B2 00               SHLD   VALVAR   ; Save value of variable?
+FAC6   22 B2 24               SHLD   VALVAR   ; Save value of variable?
 FAC9   CD 58 FB               CALL   INLN   ; Get line from operator
 FACC                             ; 
 FACC   CD 1D FA               CALL   EVAL   ; Evaluate line
-FACF   2A B2 00               LHLD   VALVAR   ; Return value of line operator enters
+FACF   2A B2 24               LHLD   VALVAR   ; Return value of line operator enters
 FAD2   C9                     RET      ; 
 FAD3                             ; 
 FAD3                             ;--------------------------------
@@ -950,7 +951,7 @@ FAE8                             ;
 FAE8   4E                     MOV   C,M   ; 
 FAE9   23                     INX   H   ; 
 FAEA   46                     MOV   B,M   ; 
-FAEB   2A AC 00               LHLD   RESULT   ; ?
+FAEB   2A AC 24               LHLD   RESULT   ; ?
 FAEE   C9                     RET      ; 
 FAEF                             ; 
 FAEF                             ;--------------------------------
@@ -958,8 +959,8 @@ FAEF                             ; Obviously, deal with array DEEK/DOKE...
 FAEF                             ; 
 FAEF   CD 1D FA     ARRAY:    CALL   EVAL   ; Evaluate expression to find which element
 FAF2                             ; 
-FAF2   22 AC 00               SHLD   RESULT   ; Save result of evaluation?
-FAF5   2A 8C 00               LHLD   AMPERS   ; Get address of next byte of user program
+FAF2   22 AC 24               SHLD   RESULT   ; Save result of evaluation?
+FAF5   2A 8C 24               LHLD   AMPERS   ; Get address of next byte of user program
 FAF8   09                     DAD   B   ; 
 FAF9   09                     DAD   B   ; Two bytes for every element in array
 FAFA   F1                     POP   PSW   ; 
@@ -981,9 +982,9 @@ FB04                             ; " " to "?" as 20H to 3FH (Includes "0" to "9"
 FB04                             ; Note inversion!
 FB04                             ; "@" maps BEFORE space not after it
 FB04                             ; 
-FB04   22 AC 00               SHLD   RESULT   ; Save value of expression
+FB04   22 AC 24               SHLD   RESULT   ; Save value of expression
 FB07   E6 3F                  ANI   00111111B   ; = 3FH (Uppercase Only)
-FB09   21 20 00               LXI   H,AT/2   ; We're going to double this, so ....
+FB09   21 20 12               LXI   H,AT/2   ; We're going to double this, so ....
 FB0C   85                     ADD   L   ; Add Character offset into var table
 FB0D   6F                     MOV   L,A   ; Calculate standard letter variables
 FB0E   29                     DAD   H   ; 2 bytes for each variable
@@ -1072,7 +1073,7 @@ FB55   CD 83 FB     NEWLIN:   CALL   CRLF   ; Return "cursor" at beginning of ne
 FB58                             ; 
 FB58                             ;         Subroutine __________________________
 FB58                             ; 
-FB58   21 C5 00     INLN:     LXI   H,LINBUF+1   ; Point to first char in line buffer
+FB58   21 C5 24     INLN:     LXI   H,LINBUF+1   ; Point to first char in line buffer
 FB5B                             ; 
 FB5B                             ; Check if we reached the beginning of the line,
 FB5B                             ; that is to say: erased all the line, backspacing chars.
@@ -1099,7 +1100,7 @@ FB70   C2 49 FB               JNZ   INLN6   ; Yes: Go proceed another line
 FB73                             ; 
 FB73   AF           INLN4:    XRA   A   ; Mark end of line with a 00H
 FB74   77                     MOV   M,A   ; 
-FB75   21 C4 00               LXI   H,LINBUF   ; Point back to beginning of line
+FB75   21 C4 24               LXI   H,LINBUF   ; Point back to beginning of line
 FB78   C3 88 FB               JMP   PRLF   ; It was CR: add LF and done
 FB7B                             ; 
 FB7B                             ;--------------------------------
@@ -1126,7 +1127,7 @@ FB8D                             ; Outputs the number of null bytes (00H) stored
 FB8D                             ; while the printhead of the ASR-33 Teletype returns to
 FB8D                             ; the left side of the roll of punched paper.
 FB8D                             ; 
-FB8D   3A 98 00               LDA   COMMA   ; Number of null bytes after cr/lf
+FB8D   3A 98 24               LDA   COMMA   ; Number of null bytes after cr/lf
 FB90   3D           NULL:     DCR   A   ; Number should be less than 128
 FB91   F8                     RM      ; Return if no more nulls wanted
 FB92   F5                     PUSH   PSW   ; 
@@ -1145,362 +1146,365 @@ FBA0                          END
 
 
 MACHINE:            0001 DEFINED AT LINE 1
-CASSTS:             0006 DEFINED AT LINE 12
-                    > USED AT LINE 651
-                    > USED AT LINE 689
-CASSTD:             0007 DEFINED AT LINE 13
-                    > USED AT LINE 654
-                    > USED AT LINE 695
-UART_BASE:          0008 DEFINED AT LINE 15
-                    > USED AT LINE 16
-                    > USED AT LINE 17
+OFFSET:             2400 DEFINED AT LINE 4
+                    > USED AT LINE 93
+                    > USED AT LINE 153
+CASSTS:             0006 DEFINED AT LINE 14
+                    > USED AT LINE 653
+                    > USED AT LINE 691
+CASSTD:             0007 DEFINED AT LINE 15
+                    > USED AT LINE 656
+                    > USED AT LINE 697
+UART_BASE:          0008 DEFINED AT LINE 17
                     > USED AT LINE 18
                     > USED AT LINE 19
                     > USED AT LINE 20
                     > USED AT LINE 21
                     > USED AT LINE 22
                     > USED AT LINE 23
-UART0:              0008 DEFINED AT LINE 16
-                    > USED AT LINE 661
-                    > USED AT LINE 714
-UART1:              0009 DEFINED AT LINE 17
-UART2:              000A DEFINED AT LINE 18
-UART3:              000B DEFINED AT LINE 19
-UART4:              000C DEFINED AT LINE 20
-UART5:              000D DEFINED AT LINE 21
-                    > USED AT LINE 530
-UART6:              000E DEFINED AT LINE 22
-UART7:              000F DEFINED AT LINE 23
-SIO_BASE:           0018 DEFINED AT LINE 25
-                    > USED AT LINE 26
-                    > USED AT LINE 27
+                    > USED AT LINE 24
+                    > USED AT LINE 25
+UART0:              0008 DEFINED AT LINE 18
+                    > USED AT LINE 663
+                    > USED AT LINE 716
+UART1:              0009 DEFINED AT LINE 19
+UART2:              000A DEFINED AT LINE 20
+UART3:              000B DEFINED AT LINE 21
+UART4:              000C DEFINED AT LINE 22
+UART5:              000D DEFINED AT LINE 23
+                    > USED AT LINE 532
+UART6:              000E DEFINED AT LINE 24
+UART7:              000F DEFINED AT LINE 25
+SIO_BASE:           0018 DEFINED AT LINE 27
                     > USED AT LINE 28
                     > USED AT LINE 29
-SIO_DA:             0018 DEFINED AT LINE 26
-SIO_CA:             0019 DEFINED AT LINE 27
-SIO_DB:             001A DEFINED AT LINE 28
-SIO_CB:             001B DEFINED AT LINE 29
-CLEAR:              0001 DEFINED AT LINE 76
-                    > USED AT LINE 166
-INTCI:              0011 DEFINED AT LINE 77
-CTRLC:              0003 DEFINED AT LINE 82
-                    > USED AT LINE 626
-LF:                 000A DEFINED AT LINE 83
+                    > USED AT LINE 30
+                    > USED AT LINE 31
+SIO_DA:             0018 DEFINED AT LINE 28
+SIO_CA:             0019 DEFINED AT LINE 29
+SIO_DB:             001A DEFINED AT LINE 30
+SIO_CB:             001B DEFINED AT LINE 31
+CLEAR:              0001 DEFINED AT LINE 78
+                    > USED AT LINE 168
+INTCI:              0011 DEFINED AT LINE 79
+CTRLC:              0003 DEFINED AT LINE 84
+                    > USED AT LINE 628
+LF:                 000A DEFINED AT LINE 85
+                    > USED AT LINE 1130
+                    > USED AT LINE 1150
+CR:                 000D DEFINED AT LINE 86
+                    > USED AT LINE 1105
                     > USED AT LINE 1128
-                    > USED AT LINE 1148
-CR:                 000D DEFINED AT LINE 84
-                    > USED AT LINE 1103
-                    > USED AT LINE 1126
-                    > USED AT LINE 1148
-BRKPNT:             0000 DEFINED AT LINE 92
-                    > USED AT LINE 398
-RST0:               0000 DEFINED AT LINE 93
-RST1:               0008 DEFINED AT LINE 94
-RST2:               0010 DEFINED AT LINE 95
-RST3:               0018 DEFINED AT LINE 96
-RST4:               0020 DEFINED AT LINE 97
-RST5:               0028 DEFINED AT LINE 98
-RST6:               0030 DEFINED AT LINE 99
-RST7:               0038 DEFINED AT LINE 100
-AT:                 0040 DEFINED AT LINE 101
-                    > USED AT LINE 994
-VARS:               0042 DEFINED AT LINE 102
-BRAK:               0076 DEFINED AT LINE 103
-SLISH:              0078 DEFINED AT LINE 104
-BRIK:               007A DEFINED AT LINE 105
-UP:                 007C DEFINED AT LINE 106
-LINPTR:             007E DEFINED AT LINE 107
-                    > USED AT LINE 216
-                    > USED AT LINE 224
-                    > USED AT LINE 315
-                    > USED AT LINE 336
-                    > USED AT LINE 431
-                    > USED AT LINE 477
-SPAC:               0080 DEFINED AT LINE 108
-EXCLAM:             0082 DEFINED AT LINE 109
-                    > USED AT LINE 228
-QUOTE:              0084 DEFINED AT LINE 110
-NUMBR:              0086 DEFINED AT LINE 111
-                    > USED AT LINE 202
-                    > USED AT LINE 215
-                    > USED AT LINE 268
-                    > USED AT LINE 281
-                    > USED AT LINE 333
-                    > USED AT LINE 488
-DOLLAR:             0088 DEFINED AT LINE 112
-PERCNT:             008A DEFINED AT LINE 113
-                    > USED AT LINE 825
-AMPERS:             008C DEFINED AT LINE 114
-                    > USED AT LINE 232
-                    > USED AT LINE 286
-                    > USED AT LINE 330
-                    > USED AT LINE 442
-                    > USED AT LINE 473
-                    > USED AT LINE 970
-QUITE:              008E DEFINED AT LINE 115
-                    > USED AT LINE 408
-                    > USED AT LINE 410
-PAREN:              0090 DEFINED AT LINE 116
-PARIN:              0092 DEFINED AT LINE 117
-STAR:               0094 DEFINED AT LINE 118
-                    > USED AT LINE 462
-PLUS:               0096 DEFINED AT LINE 119
-COMMA:              0098 DEFINED AT LINE 120
-                    > USED AT LINE 169
-                    > USED AT LINE 1137
-MINUS:              009A DEFINED AT LINE 121
-PERIOD:             009C DEFINED AT LINE 122
-                    > USED AT LINE 167
-                    > USED AT LINE 639
-                    > USED AT LINE 677
-                    > USED AT LINE 700
-SLASH:              009E DEFINED AT LINE 123
-EVALPT:             00A0 DEFINED AT LINE 125
-                    > USED AT LINE 745
-                    > USED AT LINE 762
-SV1:                00A2 DEFINED AT LINE 126
-SV2:                00A4 DEFINED AT LINE 127
-SV3:                00A6 DEFINED AT LINE 128
-SV4:                00A8 DEFINED AT LINE 129
-SV5:                00AA DEFINED AT LINE 130
-RESULT:             00AC DEFINED AT LINE 131
-                    > USED AT LINE 961
-                    > USED AT LINE 969
-                    > USED AT LINE 992
-LINUMB:             00AE DEFINED AT LINE 132
-                    > USED AT LINE 261
-                    > USED AT LINE 371
-CURENT:             00B0 DEFINED AT LINE 133
-                    > USED AT LINE 278
-                    > USED AT LINE 445
-                    > USED AT LINE 494
-VALVAR:             00B2 DEFINED AT LINE 134
-                    > USED AT LINE 928
-                    > USED AT LINE 932
-COLN:               00B4 DEFINED AT LINE 136
-SEMI:               00B6 DEFINED AT LINE 137
-LESS:               00B8 DEFINED AT LINE 138
-EQAL:               00BA DEFINED AT LINE 139
-GRAT:               00BC DEFINED AT LINE 140
-DECBUF:             00BE DEFINED AT LINE 142
-                    > USED AT LINE 570
-                    > USED AT LINE 600
-LASTD:              00C2 DEFINED AT LINE 143
-DELIM:              00C3 DEFINED AT LINE 144
-                    > USED AT LINE 193
-LINBUF:             00C4 DEFINED AT LINE 145
-                    > USED AT LINE 1083
-                    > USED AT LINE 1110
-STACK:              0140 DEFINED AT LINE 153
-                    > USED AT LINE 191
-PRGM:               0140 DEFINED AT LINE 154
-                    > USED AT LINE 288
-                    > USED AT LINE 335
-RSTRT:              F800 DEFINED AT LINE 164
-START:              F810 DEFINED AT LINE 191
-                    > USED AT LINE 206
-                    > USED AT LINE 212
-                    > USED AT LINE 294
-                    > USED AT LINE 468
-                    > USED AT LINE 627
-LOOP:               F81D DEFINED AT LINE 201
-                    > USED AT LINE 449
-                    > USED AT LINE 502
-LOOP2:              F82F DEFINED AT LINE 208
-                    > USED AT LINE 229
-EQSTRT:             F832 DEFINED AT LINE 212
-                    > USED AT LINE 237
-LOOP3:              F858 DEFINED AT LINE 231
-                    > USED AT LINE 223
+                    > USED AT LINE 1150
+BRKPNT:             2400 DEFINED AT LINE 94
+                    > USED AT LINE 400
+RST0:               2400 DEFINED AT LINE 95
+RST1:               2408 DEFINED AT LINE 96
+RST2:               2410 DEFINED AT LINE 97
+RST3:               2418 DEFINED AT LINE 98
+RST4:               2420 DEFINED AT LINE 99
+RST5:               2428 DEFINED AT LINE 100
+RST6:               2430 DEFINED AT LINE 101
+RST7:               2438 DEFINED AT LINE 102
+AT:                 2440 DEFINED AT LINE 103
+                    > USED AT LINE 996
+VARS:               2442 DEFINED AT LINE 104
+BRAK:               2476 DEFINED AT LINE 105
+SLISH:              2478 DEFINED AT LINE 106
+BRIK:               247A DEFINED AT LINE 107
+UP:                 247C DEFINED AT LINE 108
+LINPTR:             247E DEFINED AT LINE 109
+                    > USED AT LINE 218
                     > USED AT LINE 226
-LXHN:               F865 DEFINED AT LINE 242
-                    > USED AT LINE 214
-                    > USED AT LINE 225
-                    > USED AT LINE 426
-CPHD:               F869 DEFINED AT LINE 251
-                    > USED AT LINE 292
-EXEC:               F86F DEFINED AT LINE 261
-                    > USED AT LINE 205
-                    > USED AT LINE 220
-SKIP:               F876 DEFINED AT LINE 265
-OUTX:               F87A DEFINED AT LINE 268
-STMNT:              F880 DEFINED AT LINE 278
-                    > USED AT LINE 204
-LST2:               F894 DEFINED AT LINE 292
-                    > USED AT LINE 310
-NXTXT:              F8AE DEFINED AT LINE 315
-                    > USED AT LINE 357
-                    > USED AT LINE 428
-LOOKAG:             F8B2 DEFINED AT LINE 317
-                    > USED AT LINE 320
-OUTH:               F8B8 DEFINED AT LINE 324
-                    > USED AT LINE 741
-FIND:               F8BA DEFINED AT LINE 330
-                    > USED AT LINE 208
-                    > USED AT LINE 423
-FND2:               F8C6 DEFINED AT LINE 336
-                    > USED AT LINE 359
-NXTUU:              F8D1 DEFINED AT LINE 346
-                    > USED AT LINE 339
-FND3:               F8D9 DEFINED AT LINE 357
-                    > USED AT LINE 236
-EVIL:               F8DF DEFINED AT LINE 365
-                    > USED AT LINE 266
-ANDT:               F8F8 DEFINED AT LINE 383
-                    > USED AT LINE 376
-CPBD:               F90B DEFINED AT LINE 414
-                    > USED AT LINE 432
-                    > USED AT LINE 485
-SKP2:               F911 DEFINED AT LINE 423
-                    > USED AT LINE 284
-DELT:               F924 DEFINED AT LINE 432
-                    > USED AT LINE 438
-FITIT:              F931 DEFINED AT LINE 442
+                    > USED AT LINE 317
+                    > USED AT LINE 338
                     > USED AT LINE 433
-INSRT:              F936 DEFINED AT LINE 445
-                    > USED AT LINE 425
-                    > USED AT LINE 427
-CNTLN:              F941 DEFINED AT LINE 451
-                    > USED AT LINE 455
-OPEN:               F948 DEFINED AT LINE 459
-SLIDE:              F962 DEFINED AT LINE 481
-                    > USED AT LINE 486
-DON:                F96C DEFINED AT LINE 488
-MOVL:               F977 DEFINED AT LINE 496
-                    > USED AT LINE 501
-POLCAT:             F982 DEFINED AT LINE 530
-                    > USED AT LINE 623
-                    > USED AT LINE 633
-                    > USED AT LINE 710
-PRNT2:              F98B DEFINED AT LINE 570
-                    > USED AT LINE 301
-                    > USED AT LINE 384
-CVD1:               F991 DEFINED AT LINE 572
-                    > USED AT LINE 593
-ZRSUP:              F9B2 DEFINED AT LINE 601
-                    > USED AT LINE 604
-PNTMSG:             F9B9 DEFINED AT LINE 608
-                    > USED AT LINE 305
-STRMSG:             F9BA DEFINED AT LINE 613
-                    > USED AT LINE 1119
-OUTMSG:             F9BB DEFINED AT LINE 614
-                    > USED AT LINE 619
-CONTC:              F9C7 DEFINED AT LINE 623
-                    > USED AT LINE 617
-INCH:               F9D3 DEFINED AT LINE 633
-                    > USED AT LINE 625
-                    > USED AT LINE 647
-                    > USED AT LINE 653
-                    > USED AT LINE 943
-                    > USED AT LINE 1095
-INA:                F9EE DEFINED AT LINE 661
-                    > USED AT LINE 634
-ASCII:              F9F3 DEFINED AT LINE 667
-                    > USED AT LINE 618
-                    > USED AT LINE 665
-OUTCH:              F9F5 DEFINED AT LINE 676
-                    > USED AT LINE 379
-                    > USED AT LINE 1127
-                    > USED AT LINE 1129
-                    > USED AT LINE 1142
-OUTC:               F9FE DEFINED AT LINE 689
-                    > USED AT LINE 693
-OUTCAS:             FA0B DEFINED AT LINE 696
-                    > USED AT LINE 656
-OUTA:               FA0C DEFINED AT LINE 700
-                    > USED AT LINE 685
-                    > USED AT LINE 691
-OUTB:               FA13 DEFINED AT LINE 710
-                    > USED AT LINE 711
-EVAL:               FA1D DEFINED AT LINE 731
-                    > USED AT LINE 368
-                    > USED AT LINE 931
-                    > USED AT LINE 952
-                    > USED AT LINE 967
-NXTRM:              FA20 DEFINED AT LINE 737
-                    > USED AT LINE 746
-TERM:               FA33 DEFINED AT LINE 756
-                    > USED AT LINE 742
-EVAL2:              FA46 DEFINED AT LINE 779
-                    > USED AT LINE 769
-HSUBB:              FA4B DEFINED AT LINE 784
-                    > USED AT LINE 855
-EVAL3:              FA52 DEFINED AT LINE 795
-                    > USED AT LINE 780
-MULT1:              FA5D DEFINED AT LINE 803
-                    > USED AT LINE 813
-MULT2:              FA66 DEFINED AT LINE 811
-                    > USED AT LINE 808
-EVAL4:              FA6C DEFINED AT LINE 820
-                    > USED AT LINE 796
-DIV:                FA7A DEFINED AT LINE 843
-                    > USED AT LINE 582
-                    > USED AT LINE 824
-DIV1:               FA81 DEFINED AT LINE 847
-                    > USED AT LINE 862
-DIV2:               FA8B DEFINED AT LINE 855
-                    > USED AT LINE 853
-DIV3:               FA94 DEFINED AT LINE 860
-                    > USED AT LINE 857
-EVAL5:              FA99 DEFINED AT LINE 867
-                    > USED AT LINE 821
-EVIL5:              FA9D DEFINED AT LINE 873
-EVIL6:              FAAA DEFINED AT LINE 888
-                    > USED AT LINE 874
-EVIL7:              FAB5 DEFINED AT LINE 904
-                    > USED AT LINE 889
-GETVAL:             FABC DEFINED AT LINE 918
-                    > USED AT LINE 731
-                    > USED AT LINE 760
-VAR:                FAD3 DEFINED AT LINE 940
-                    > USED AT LINE 924
-VAR1:               FADF DEFINED AT LINE 951
-                    > USED AT LINE 941
-VAR2:               FAE5 DEFINED AT LINE 956
-                    > USED AT LINE 262
-ARRAY:              FAEF DEFINED AT LINE 967
-                    > USED AT LINE 984
-CONVP:              FAFC DEFINED AT LINE 980
-                    > USED AT LINE 372
-                    > USED AT LINE 956
-OUTD:               FB0F DEFINED AT LINE 1001
-                    > USED AT LINE 709
-PWRS10:             FB11 DEFINED AT LINE 1007
-                    > USED AT LINE 571
-TSTN:               FB1B DEFINED AT LINE 1016
-                    > USED AT LINE 1032
-                    > USED AT LINE 1046
-CVTLN:              FB23 DEFINED AT LINE 1026
-                    > USED AT LINE 203
-CVBIN:              FB26 DEFINED AT LINE 1032
-                    > USED AT LINE 918
-CBLOOP:             FB2D DEFINED AT LINE 1038
-                    > USED AT LINE 1062
-INLN6:              FB49 DEFINED AT LINE 1067
-                    > USED AT LINE 1106
-NEWLIN:             FB55 DEFINED AT LINE 1079
-                    > USED AT LINE 1068
-                    > USED AT LINE 1091
-INLN:               FB58 DEFINED AT LINE 1083
-                    > USED AT LINE 929
-                    > USED AT LINE 1026
-INLN5:              FB5B DEFINED AT LINE 1088
-                    > USED AT LINE 1099
-INLN2:              FB62 DEFINED AT LINE 1095
-                    > USED AT LINE 1075
-                    > USED AT LINE 1104
-INLN3:              FB6B DEFINED AT LINE 1103
-INLN4:              FB73 DEFINED AT LINE 1108
-QUOTE2:             FB7B DEFINED AT LINE 1115
-                    > USED AT LINE 366
-STRNG:              FB7C DEFINED AT LINE 1119
+                    > USED AT LINE 479
+SPAC:               2480 DEFINED AT LINE 110
+EXCLAM:             2482 DEFINED AT LINE 111
+                    > USED AT LINE 230
+QUOTE:              2484 DEFINED AT LINE 112
+NUMBR:              2486 DEFINED AT LINE 113
+                    > USED AT LINE 204
+                    > USED AT LINE 217
+                    > USED AT LINE 270
+                    > USED AT LINE 283
+                    > USED AT LINE 335
+                    > USED AT LINE 490
+DOLLAR:             2488 DEFINED AT LINE 114
+PERCNT:             248A DEFINED AT LINE 115
+                    > USED AT LINE 827
+AMPERS:             248C DEFINED AT LINE 116
+                    > USED AT LINE 234
+                    > USED AT LINE 288
+                    > USED AT LINE 332
+                    > USED AT LINE 444
+                    > USED AT LINE 475
+                    > USED AT LINE 972
+QUITE:              248E DEFINED AT LINE 117
+                    > USED AT LINE 410
+                    > USED AT LINE 412
+PAREN:              2490 DEFINED AT LINE 118
+PARIN:              2492 DEFINED AT LINE 119
+STAR:               2494 DEFINED AT LINE 120
+                    > USED AT LINE 464
+PLUS:               2496 DEFINED AT LINE 121
+COMMA:              2498 DEFINED AT LINE 122
+                    > USED AT LINE 171
+                    > USED AT LINE 1139
+MINUS:              249A DEFINED AT LINE 123
+PERIOD:             249C DEFINED AT LINE 124
+                    > USED AT LINE 169
+                    > USED AT LINE 641
+                    > USED AT LINE 679
+                    > USED AT LINE 702
+SLASH:              249E DEFINED AT LINE 125
+EVALPT:             24A0 DEFINED AT LINE 127
+                    > USED AT LINE 747
+                    > USED AT LINE 764
+SV1:                24A2 DEFINED AT LINE 128
+SV2:                24A4 DEFINED AT LINE 129
+SV3:                24A6 DEFINED AT LINE 130
+SV4:                24A8 DEFINED AT LINE 131
+SV5:                24AA DEFINED AT LINE 132
+RESULT:             24AC DEFINED AT LINE 133
+                    > USED AT LINE 963
+                    > USED AT LINE 971
+                    > USED AT LINE 994
+LINUMB:             24AE DEFINED AT LINE 134
+                    > USED AT LINE 263
+                    > USED AT LINE 373
+CURENT:             24B0 DEFINED AT LINE 135
+                    > USED AT LINE 280
+                    > USED AT LINE 447
+                    > USED AT LINE 496
+VALVAR:             24B2 DEFINED AT LINE 136
+                    > USED AT LINE 930
+                    > USED AT LINE 934
+COLN:               24B4 DEFINED AT LINE 138
+SEMI:               24B6 DEFINED AT LINE 139
+LESS:               24B8 DEFINED AT LINE 140
+EQAL:               24BA DEFINED AT LINE 141
+GRAT:               24BC DEFINED AT LINE 142
+DECBUF:             24BE DEFINED AT LINE 144
+                    > USED AT LINE 572
+                    > USED AT LINE 602
+LASTD:              24C2 DEFINED AT LINE 145
+DELIM:              24C3 DEFINED AT LINE 146
                     > USED AT LINE 195
-CRLF:               FB83 DEFINED AT LINE 1126
+LINBUF:             24C4 DEFINED AT LINE 147
+                    > USED AT LINE 1085
+                    > USED AT LINE 1112
+STACK:              2540 DEFINED AT LINE 155
+                    > USED AT LINE 193
+PRGM:               2540 DEFINED AT LINE 156
+                    > USED AT LINE 290
+                    > USED AT LINE 337
+RSTRT:              F800 DEFINED AT LINE 166
+START:              F810 DEFINED AT LINE 193
+                    > USED AT LINE 208
+                    > USED AT LINE 214
+                    > USED AT LINE 296
+                    > USED AT LINE 470
+                    > USED AT LINE 629
+LOOP:               F81D DEFINED AT LINE 203
+                    > USED AT LINE 451
+                    > USED AT LINE 504
+LOOP2:              F82F DEFINED AT LINE 210
+                    > USED AT LINE 231
+EQSTRT:             F832 DEFINED AT LINE 214
+                    > USED AT LINE 239
+LOOP3:              F858 DEFINED AT LINE 233
+                    > USED AT LINE 225
+                    > USED AT LINE 228
+LXHN:               F865 DEFINED AT LINE 244
+                    > USED AT LINE 216
+                    > USED AT LINE 227
+                    > USED AT LINE 428
+CPHD:               F869 DEFINED AT LINE 253
+                    > USED AT LINE 294
+EXEC:               F86F DEFINED AT LINE 263
+                    > USED AT LINE 207
+                    > USED AT LINE 222
+SKIP:               F876 DEFINED AT LINE 267
+OUTX:               F87A DEFINED AT LINE 270
+STMNT:              F880 DEFINED AT LINE 280
+                    > USED AT LINE 206
+LST2:               F894 DEFINED AT LINE 294
+                    > USED AT LINE 312
+NXTXT:              F8AE DEFINED AT LINE 317
+                    > USED AT LINE 359
+                    > USED AT LINE 430
+LOOKAG:             F8B2 DEFINED AT LINE 319
+                    > USED AT LINE 322
+OUTH:               F8B8 DEFINED AT LINE 326
+                    > USED AT LINE 743
+FIND:               F8BA DEFINED AT LINE 332
+                    > USED AT LINE 210
+                    > USED AT LINE 425
+FND2:               F8C6 DEFINED AT LINE 338
+                    > USED AT LINE 361
+NXTUU:              F8D1 DEFINED AT LINE 348
+                    > USED AT LINE 341
+FND3:               F8D9 DEFINED AT LINE 359
+                    > USED AT LINE 238
+EVIL:               F8DF DEFINED AT LINE 367
+                    > USED AT LINE 268
+ANDT:               F8F8 DEFINED AT LINE 385
+                    > USED AT LINE 378
+CPBD:               F90B DEFINED AT LINE 416
+                    > USED AT LINE 434
+                    > USED AT LINE 487
+SKP2:               F911 DEFINED AT LINE 425
+                    > USED AT LINE 286
+DELT:               F924 DEFINED AT LINE 434
+                    > USED AT LINE 440
+FITIT:              F931 DEFINED AT LINE 444
+                    > USED AT LINE 435
+INSRT:              F936 DEFINED AT LINE 447
+                    > USED AT LINE 427
+                    > USED AT LINE 429
+CNTLN:              F941 DEFINED AT LINE 453
+                    > USED AT LINE 457
+OPEN:               F948 DEFINED AT LINE 461
+SLIDE:              F962 DEFINED AT LINE 483
+                    > USED AT LINE 488
+DON:                F96C DEFINED AT LINE 490
+MOVL:               F977 DEFINED AT LINE 498
+                    > USED AT LINE 503
+POLCAT:             F982 DEFINED AT LINE 532
+                    > USED AT LINE 625
+                    > USED AT LINE 635
+                    > USED AT LINE 712
+PRNT2:              F98B DEFINED AT LINE 572
+                    > USED AT LINE 303
+                    > USED AT LINE 386
+CVD1:               F991 DEFINED AT LINE 574
+                    > USED AT LINE 595
+ZRSUP:              F9B2 DEFINED AT LINE 603
+                    > USED AT LINE 606
+PNTMSG:             F9B9 DEFINED AT LINE 610
                     > USED AT LINE 307
-                    > USED AT LINE 1079
-PRLF:               FB88 DEFINED AT LINE 1128
-                    > USED AT LINE 1111
-NULL:               FB90 DEFINED AT LINE 1138
+STRMSG:             F9BA DEFINED AT LINE 615
+                    > USED AT LINE 1121
+OUTMSG:             F9BB DEFINED AT LINE 616
+                    > USED AT LINE 621
+CONTC:              F9C7 DEFINED AT LINE 625
+                    > USED AT LINE 619
+INCH:               F9D3 DEFINED AT LINE 635
+                    > USED AT LINE 627
+                    > USED AT LINE 649
+                    > USED AT LINE 655
+                    > USED AT LINE 945
+                    > USED AT LINE 1097
+INA:                F9EE DEFINED AT LINE 663
+                    > USED AT LINE 636
+ASCII:              F9F3 DEFINED AT LINE 669
+                    > USED AT LINE 620
+                    > USED AT LINE 667
+OUTCH:              F9F5 DEFINED AT LINE 678
+                    > USED AT LINE 381
+                    > USED AT LINE 1129
+                    > USED AT LINE 1131
                     > USED AT LINE 1144
-OKM:                FB9B DEFINED AT LINE 1148
-                    > USED AT LINE 194
+OUTC:               F9FE DEFINED AT LINE 691
+                    > USED AT LINE 695
+OUTCAS:             FA0B DEFINED AT LINE 698
+                    > USED AT LINE 658
+OUTA:               FA0C DEFINED AT LINE 702
+                    > USED AT LINE 687
+                    > USED AT LINE 693
+OUTB:               FA13 DEFINED AT LINE 712
+                    > USED AT LINE 713
+EVAL:               FA1D DEFINED AT LINE 733
+                    > USED AT LINE 370
+                    > USED AT LINE 933
+                    > USED AT LINE 954
+                    > USED AT LINE 969
+NXTRM:              FA20 DEFINED AT LINE 739
+                    > USED AT LINE 748
+TERM:               FA33 DEFINED AT LINE 758
+                    > USED AT LINE 744
+EVAL2:              FA46 DEFINED AT LINE 781
+                    > USED AT LINE 771
+HSUBB:              FA4B DEFINED AT LINE 786
+                    > USED AT LINE 857
+EVAL3:              FA52 DEFINED AT LINE 797
+                    > USED AT LINE 782
+MULT1:              FA5D DEFINED AT LINE 805
+                    > USED AT LINE 815
+MULT2:              FA66 DEFINED AT LINE 813
+                    > USED AT LINE 810
+EVAL4:              FA6C DEFINED AT LINE 822
+                    > USED AT LINE 798
+DIV:                FA7A DEFINED AT LINE 845
+                    > USED AT LINE 584
+                    > USED AT LINE 826
+DIV1:               FA81 DEFINED AT LINE 849
+                    > USED AT LINE 864
+DIV2:               FA8B DEFINED AT LINE 857
+                    > USED AT LINE 855
+DIV3:               FA94 DEFINED AT LINE 862
+                    > USED AT LINE 859
+EVAL5:              FA99 DEFINED AT LINE 869
+                    > USED AT LINE 823
+EVIL5:              FA9D DEFINED AT LINE 875
+EVIL6:              FAAA DEFINED AT LINE 890
+                    > USED AT LINE 876
+EVIL7:              FAB5 DEFINED AT LINE 906
+                    > USED AT LINE 891
+GETVAL:             FABC DEFINED AT LINE 920
+                    > USED AT LINE 733
+                    > USED AT LINE 762
+VAR:                FAD3 DEFINED AT LINE 942
+                    > USED AT LINE 926
+VAR1:               FADF DEFINED AT LINE 953
+                    > USED AT LINE 943
+VAR2:               FAE5 DEFINED AT LINE 958
+                    > USED AT LINE 264
+ARRAY:              FAEF DEFINED AT LINE 969
+                    > USED AT LINE 986
+CONVP:              FAFC DEFINED AT LINE 982
+                    > USED AT LINE 374
+                    > USED AT LINE 958
+OUTD:               FB0F DEFINED AT LINE 1003
+                    > USED AT LINE 711
+PWRS10:             FB11 DEFINED AT LINE 1009
+                    > USED AT LINE 573
+TSTN:               FB1B DEFINED AT LINE 1018
+                    > USED AT LINE 1034
+                    > USED AT LINE 1048
+CVTLN:              FB23 DEFINED AT LINE 1028
+                    > USED AT LINE 205
+CVBIN:              FB26 DEFINED AT LINE 1034
+                    > USED AT LINE 920
+CBLOOP:             FB2D DEFINED AT LINE 1040
+                    > USED AT LINE 1064
+INLN6:              FB49 DEFINED AT LINE 1069
+                    > USED AT LINE 1108
+NEWLIN:             FB55 DEFINED AT LINE 1081
+                    > USED AT LINE 1070
+                    > USED AT LINE 1093
+INLN:               FB58 DEFINED AT LINE 1085
+                    > USED AT LINE 931
+                    > USED AT LINE 1028
+INLN5:              FB5B DEFINED AT LINE 1090
+                    > USED AT LINE 1101
+INLN2:              FB62 DEFINED AT LINE 1097
+                    > USED AT LINE 1077
+                    > USED AT LINE 1106
+INLN3:              FB6B DEFINED AT LINE 1105
+INLN4:              FB73 DEFINED AT LINE 1110
+QUOTE2:             FB7B DEFINED AT LINE 1117
+                    > USED AT LINE 368
+STRNG:              FB7C DEFINED AT LINE 1121
+                    > USED AT LINE 197
+CRLF:               FB83 DEFINED AT LINE 1128
+                    > USED AT LINE 309
+                    > USED AT LINE 1081
+PRLF:               FB88 DEFINED AT LINE 1130
+                    > USED AT LINE 1113
+NULL:               FB90 DEFINED AT LINE 1140
+                    > USED AT LINE 1146
+OKM:                FB9B DEFINED AT LINE 1150
+                    > USED AT LINE 196
