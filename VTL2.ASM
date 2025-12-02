@@ -1095,6 +1095,8 @@ INLN5:	DCX	H	; Point before the first char
 ; Not at end of line: Get another char, and check it.
 ;
 INLN2:	CALL	INCH	; Input another char
+	CPI	CR
+	JZ	INLN2		; IGNORE CRs
 ;
 	MOV	M,A	; Sve it in line
 	CPI	'_'	; Backspace to erase a char?
@@ -1102,7 +1104,7 @@ INLN2:	CALL	INCH	; Input another char
 ;
 ; No: Check if the user had ended inputting a line.
 ;
-INLN3:	CPI	CR	;
+INLN3:	CPI	LF	;
 	JC	INLN2	; No: Get another char
 ;
 	JNZ	INLN6	; Yes: Go proceed another line
